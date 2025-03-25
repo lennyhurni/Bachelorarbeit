@@ -16,7 +16,7 @@ export function Navigation() {
   const isAdaptive = pathname.startsWith("/adaptive")
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-[9999] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <NavigationMenu>
           <NavigationMenuList>
@@ -48,7 +48,7 @@ export function Navigation() {
                 >
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    <span>Einfache Version</span>
+                    <span>Prototyp 1</span>
                   </div>
                 </NavigationMenuLink>
               </Link>
@@ -63,7 +63,7 @@ export function Navigation() {
                 >
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4" />
-                    <span>KI-Version</span>
+                    <span>Prototyp 2</span>
                   </div>
                 </NavigationMenuLink>
               </Link>

@@ -66,26 +66,13 @@ export default function Profile() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Profil-Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src="/placeholder-avatar.jpg" />
-              <AvatarFallback>MM</AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{user.name}</h1>
-              <div className="flex items-center gap-4 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Dabei seit {user.joinedDate}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center gap-2 mb-8">
+          {isAdaptive ? (
+            <Brain className="h-8 w-8 text-primary" />
+          ) : (
+            <User className="h-8 w-8 text-primary" />
+          )}
+          <h1 className="text-3xl font-bold">Profil</h1>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">

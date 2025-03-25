@@ -41,15 +41,24 @@ export default function HelpPage() {
                 <Home className="h-4 w-4" />
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-primary" />
-              <span className="text-lg font-semibold">Hilfe & Anleitung</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="text-foreground">{isAdaptive ? "KI-Hilfe" : "Hilfe"}</span>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Help Header */}
+        <div className="flex items-center gap-2 mb-8">
+          {isAdaptive ? (
+            <Brain className="h-8 w-8 text-primary" />
+          ) : (
+            <HelpCircle className="h-8 w-8 text-primary" />
+          )}
+          <h1 className="text-3xl font-bold">{isAdaptive ? "KI-Hilfe" : "Hilfe"}</h1>
+        </div>
+
         <div className="mx-auto max-w-5xl">
           {/* Hero Section */}
           <div className="mb-8 text-center">

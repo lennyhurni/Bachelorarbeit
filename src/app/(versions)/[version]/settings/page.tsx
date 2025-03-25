@@ -116,7 +116,7 @@ export default function SettingsPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-foreground">Einstellungen</span>
+              <span className="text-foreground">{isAdaptive ? "KI-Einstellungen" : "Einstellungen"}</span>
             </div>
           </div>
           <Button 
@@ -140,6 +140,16 @@ export default function SettingsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Settings Header */}
+        <div className="flex items-center gap-2 mb-8">
+          {isAdaptive ? (
+            <Brain className="h-8 w-8 text-primary" />
+          ) : (
+            <Settings className="h-8 w-8 text-primary" />
+          )}
+          <h1 className="text-3xl font-bold">{isAdaptive ? "KI-Einstellungen" : "Einstellungen"}</h1>
+        </div>
+
         <div className="max-w-2xl mx-auto">
           {/* Allgemeine Einstellungen */}
           <Card className="mb-6">

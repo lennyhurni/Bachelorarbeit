@@ -26,6 +26,7 @@ export function Sidebar({ version }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const isAdaptive = version === "adaptive"
 
   const routes = [
     {
@@ -71,8 +72,14 @@ export function Sidebar({ version }: SidebarProps) {
             "flex items-center gap-2 transition-all duration-300",
             collapsed ? "opacity-0 w-0" : "opacity-100"
           )}>
-            <Brain className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Reflectify</span>
+            {isAdaptive ? (
+              <Brain className="h-6 w-6 text-primary" />
+            ) : (
+              <BookOpen className="h-6 w-6 text-primary" />
+            )}
+            <span className="text-lg font-semibold">
+              {isAdaptive ? "Prototyp 2" : "Prototyp 1"}
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -116,25 +123,6 @@ export function Sidebar({ version }: SidebarProps) {
             </Link>
           ))}
         </nav>
-
-        {pathname.includes("/reflections") && (
-          <Button
-            className={cn(
-              "mt-auto gap-2 transition-all duration-300",
-              collapsed ? "w-8 h-8 p-0" : ""
-            )}
-            onClick={() => router.push(`/${version}/reflections/new`)}
-          >
-            {collapsed ? (
-              <Plus className="h-5 w-5" />
-            ) : (
-              <>
-                <Plus className="h-5 w-5" />
-                <span>Neue Reflexion</span>
-              </>
-            )}
-          </Button>
-        )}
       </div>
     </div>
   )
