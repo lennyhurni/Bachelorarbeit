@@ -218,7 +218,7 @@ export default function SimpleSettingsPage() {
                 <div className="space-y-0.5">
                   <Label>Reflexions-Erinnerungen</Label>
                   <p className="text-sm text-muted-foreground">
-                    Erhalten Sie Erinnerungen für regelmäßige Reflexionen
+                    Erhalten Sie Erinnerungen für regelmässige Reflexionen
                   </p>
                 </div>
                 <Switch

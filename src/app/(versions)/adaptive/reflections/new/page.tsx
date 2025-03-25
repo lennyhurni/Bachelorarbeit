@@ -195,7 +195,7 @@ export default function NewAdaptiveReflection() {
     // Calculate metacognition (based on reflective language)
     const metacognitiveTerms = [
       "ich denke", "ich fühle", "ich bemerke", "ich erkenne", "ich verstehe",
-      "mir ist aufgefallen", "ich habe gelernt", "ich weiß nun", "ich bin mir bewusst"
+      "mir ist aufgefallen", "ich habe gelernt", "ich weiss nun", "ich bin mir bewusst"
     ]
     const metacognitiveMatches = metacognitiveTerms.filter(term => 
       reflectionText.toLowerCase().includes(term.toLowerCase())
@@ -681,7 +681,7 @@ export default function NewAdaptiveReflection() {
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-sm font-medium flex items-center gap-2">
                           <ArrowRight className="h-4 w-4 text-primary" />
-                          Vorgeschlagene Maßnahmen
+                          Vorgeschlagene Massnahmen
                         </h3>
                         <TooltipProvider>
                           <Tooltip>

@@ -426,7 +426,7 @@ export default function AdaptiveDashboard() {
 
       {/* Hauptinhalt: 2-Spalten-Layout */}
       <div className="grid gap-6 md:grid-cols-7">
-        {/* KPI-Radar-Chart (größer) */}
+        {/* KPI-Radar-Chart (grösser) */}
         <Card className="md:col-span-4">
           <CardHeader className="border-b">
             <div className="flex items-center justify-between">
@@ -443,7 +443,7 @@ export default function AdaptiveDashboard() {
                     <TooltipContent align="end" className="max-w-xs">
                       <div>
                         <p className="text-xs font-medium mb-1">Multidimensionale KPIs</p>
-                        <p className="text-xs">Die Spinnennetzdarstellung zeigt Ihre Performance in vier Schlüsselbereichen reflektiven Denkens. Je weiter außen ein Punkt, desto besser Ihre Leistung in diesem Bereich.</p>
+                        <p className="text-xs">Die Spinnennetzdarstellung zeigt Ihre Performance in vier Schlüsselbereichen reflektiven Denkens. Je weiter aussen ein Punkt, desto besser Ihre Leistung in diesem Bereich.</p>
                         {showSystemInfo && (
                           <div className="mt-1 pt-1 border-t border-border text-muted-foreground">
                             <p className="text-xs">Berechnungsmethode: NLP-Algorithmen analysieren Ihre Texte nach linguistischen Mustern, um jede Dimension zu bewerten.</p>

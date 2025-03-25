@@ -127,7 +127,7 @@ export default function SimpleDashboard() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
-                    <p className="text-xs">Fortschritt zu Ihrem wöchentlichen Reflexionsziel. Regelmäßige Reflexion verbessert Ihren Lernprozess.</p>
+                    <p className="text-xs">Fortschritt zu Ihrem wöchentlichen Reflexionsziel. Regelmässige Reflexion verbessert Ihren Lernprozess.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -203,7 +203,7 @@ export default function SimpleDashboard() {
 
       {/* Hauptinhalt: 2-Spalten-Layout */}
       <div className="grid gap-6 md:grid-cols-7 mt-8">
-        {/* Fortschrittsübersicht (größer) */}
+        {/* Fortschrittsübersicht (grösser) */}
         <Card className="md:col-span-4">
           <CardHeader>
             <div className="flex items-center justify-between">

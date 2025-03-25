@@ -145,7 +145,7 @@ export default function ReflectionDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-sm">Ihre regelmäßigen Übungen sind ein ausgezeichneter Ansatz. Erwägen Sie, Ihre Lernfortschritte zu dokumentieren, um Ihre Entwicklung im Laufe der Zeit zu verfolgen.</p>
+                    <p className="text-sm">Ihre regelmässigen Übungen sind ein ausgezeichneter Ansatz. Erwägen Sie, Ihre Lernfortschritte zu dokumentieren, um Ihre Entwicklung im Laufe der Zeit zu verfolgen.</p>
                   </div>
                 </div>
               </CardContent>

@@ -135,7 +135,7 @@ export default function HelpPage() {
                             </div>
                             <h3 className="text-lg font-medium">3. Routine entwickeln</h3>
                             <p className="text-sm text-muted-foreground">
-                              Legen Sie fest, wann Sie regelmäßig reflektieren möchten.
+                              Legen Sie fest, wann Sie regelmässig reflektieren möchten.
                               Die App erinnert Sie an Ihre Reflexionszeiten.
                             </p>
                           </div>
@@ -207,7 +207,7 @@ export default function HelpPage() {
                             <ul className="ml-4 space-y-2 text-sm text-muted-foreground">
                               <li>• Erinnerungsfunktion</li>
                               <li>• Flexible Zeitplanung</li>
-                              <li>• Regelmäßige Intervalle</li>
+                              <li>• Regelmässige Intervalle</li>
                               <li>• Kalenderintegration</li>
                             </ul>
                           </div>
@@ -363,7 +363,7 @@ export default function HelpPage() {
                               </p>
                               <div className="rounded-md bg-primary/10 p-3">
                                 <p className="text-xs text-primary">
-                                  Tipp: Überprüfen Sie regelmäßig Ihre Fortschrittsanalyse!
+                                  Tipp: Überprüfen Sie regelmässig Ihre Fortschrittsanalyse!
                                 </p>
                               </div>
                             </div>
