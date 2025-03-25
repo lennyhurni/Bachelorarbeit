@@ -59,7 +59,7 @@ export default function Home() {
 
           <div className="mt-12 text-center">
             <p className="text-sm text-muted-foreground">
-              Bitte testen Sie beide Versionen und geben Sie uns anschließend Ihr Feedback.
+              Bitte testen Sie beide Versionen und geben Sie uns anschliessend Ihr Feedback.
             </p>
           </div>
         </div>
