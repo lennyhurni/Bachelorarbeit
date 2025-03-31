@@ -33,24 +33,47 @@ import {
   BrainCircuit,
   Lock
 } from "lucide-react"
+import { TransparencyInfo, TransparencyInfoGroup } from "@/components/transparency-info"
 
-// Radar chart component for KPIs
+// Radar chart component for KPIs - completely redesigned 
 const RadarChart = ({ data }: { data: { name: string, value: number, color: string }[] }) => {
+  // Create shortened versions of dimension names for radar chart
+  const dimensionLabels: Record<string, string> = {
+    "Reflexionstiefe": "Tiefe",
+    "Kohärenz": "Kohärenz",
+    "Metakognition": "Meta",
+    "Handlungsorientierung": "Handlung"
+  };
+  
   return (
-    <div className="relative w-full h-64 flex items-center justify-center">
+    <div className="relative w-full h-[280px] flex items-center justify-center">
+      {/* Background circles - subtle background */}
       <div className="absolute inset-0 flex items-center justify-center">
-        {/* Background circles */}
-        <div className="w-[90%] h-[90%] rounded-full border border-dashed border-gray-200 dark:border-gray-700"></div>
-        <div className="absolute w-[60%] h-[60%] rounded-full border border-dashed border-gray-200 dark:border-gray-700"></div>
-        <div className="absolute w-[30%] h-[30%] rounded-full border border-dashed border-gray-200 dark:border-gray-700"></div>
+        <div className="w-[85%] h-[85%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
+        <div className="absolute w-[60%] h-[60%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
+        <div className="absolute w-[30%] h-[30%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
       </div>
       
-      {/* KPI points */}
+      {/* KPI axis lines - for better visualization */}
       {data.map((kpi, index) => {
-        const angle = (Math.PI * 2 * index) / data.length
-        const radius = (kpi.value / 100) * 45 // 45% of container for max value
-        const x = Math.cos(angle) * radius
-        const y = Math.sin(angle) * radius
+        const angle = (Math.PI * 2 * index) / data.length;
+        return (
+          <div 
+            key={`axis-${kpi.name}`} 
+            className="absolute h-[42%] border-r border-dashed border-gray-200/60 dark:border-gray-700/60 origin-bottom"
+            style={{
+              transform: `rotate(${(angle * 180) / Math.PI}deg)`
+            }}
+          />
+        );
+      })}
+      
+      {/* KPI points with enhanced hover effect */}
+      {data.map((kpi, index) => {
+        const angle = (Math.PI * 2 * index) / data.length;
+        const radius = (kpi.value / 100) * 42; // Slightly reduced for better layout
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
         
         return (
           <div key={kpi.name} className="absolute" style={{
@@ -61,11 +84,20 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: kpi.color }}></div>
+                  <div 
+                    className="w-3 h-3 rounded-full cursor-help transition-all duration-200 hover:scale-150 hover:ring-2 ring-offset-2 ring-offset-background ring-primary/30" 
+                    style={{ backgroundColor: kpi.color }}
+                  ></div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <div className="text-sm">
-                    <span className="font-medium">{kpi.name}</span>: {kpi.value}%
+                  <div className="text-sm max-w-xs">
+                    <span className="font-medium">{kpi.name}:</span> {kpi.value}%
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend Sie über Erfahrungen reflektieren - von beschreibend bis kritisch-analysierend."}
+                      {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in Ihrem Text."}
+                      {kpi.name === "Metakognition" && "Erfasst, wie bewusst Sie über Ihr eigenes Denken und Ihre eigenen Lernprozesse reflektieren."}
+                      {kpi.name === "Handlungsorientierung" && "Bewertet, ob Sie konkrete nächste Schritte oder Anwendungsmöglichkeiten aus Ihren Erkenntnissen ableiten."}
+                    </p>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -74,39 +106,57 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
         )
       })}
       
-      {/* KPI labels */}
+      {/* Improved label positioning with better spacing - moved outside chart area */}
       {data.map((kpi, index) => {
-        const angle = (Math.PI * 2 * index) / data.length
-        const radius = 55 // 55% of container for labels
-        const x = Math.cos(angle) * radius
-        const y = Math.sin(angle) * radius
+        const angle = (Math.PI * 2 * index) / data.length;
+        const radius = 52; // Fixed position outside the data points
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
         
+        // Enhanced label with badge-like style for better readability
         return (
-          <div key={`label-${kpi.name}`} className="absolute text-xs font-medium" style={{
-            top: `calc(50% - ${y}%)`,
-            left: `calc(50% + ${x}%)`,
-            transform: 'translate(-50%, -50%)'
-          }}>
-            {kpi.name}
+          <div 
+            key={`label-${kpi.name}`} 
+            className="absolute py-0.5 px-1.5 rounded-md bg-background/80 backdrop-blur-sm text-xs font-medium border border-border/30 shadow-sm" 
+            style={{
+              top: `calc(50% - ${y}%)`,
+              left: `calc(50% + ${x}%)`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+              <span>{dimensionLabels[kpi.name] || kpi.name}</span>
+            </div>
           </div>
         )
       })}
       
-      {/* Connecting lines between points */}
+      {/* Connecting lines between points with subtle fade effect */}
       <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
         <polygon 
           points={data.map((kpi, index) => {
-            const angle = (Math.PI * 2 * index) / data.length
-            const radius = (kpi.value / 100) * 45 // 45% of container
-            const x = 50 + Math.cos(angle) * radius
-            const y = 50 + Math.sin(angle) * radius
-            return `${x},${y}`
+            const angle = (Math.PI * 2 * index) / data.length;
+            const radius = (kpi.value / 100) * 42; // Match the point positioning
+            const x = 50 + Math.cos(angle) * radius;
+            const y = 50 + Math.sin(angle) * radius;
+            return `${x},${y}`;
           }).join(' ')}
-          fill="rgba(59, 130, 246, 0.2)"
+          fill="rgba(59, 130, 246, 0.15)"
           stroke="#3b82f6"
-          strokeWidth="1"
+          strokeWidth="1.5"
+          strokeDasharray="0"
+          strokeOpacity="0.6"
         />
       </svg>
+      
+      {/* Central KPI summary for quick overview */}
+      <div className="absolute flex flex-col items-center justify-center rounded-full bg-muted/40 backdrop-blur-sm border border-border/20 w-16 h-16 shadow-sm">
+        <span className="text-lg font-bold">
+          {Math.round(data.reduce((sum, kpi) => sum + kpi.value, 0) / data.length)}%
+        </span>
+        <span className="text-[10px] text-muted-foreground leading-none">Gesamt</span>
+      </div>
     </div>
   )
 }
@@ -231,9 +281,9 @@ export default function NewAdaptiveReflection() {
   }, [reflectionText])
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="overflow-auto" style={{ height: '100%' }}>
+      {/* Header - No sticky behavior */}
+      <div className="border-b bg-background">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/adaptive/dashboard">
@@ -257,17 +307,17 @@ export default function NewAdaptiveReflection() {
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <span className="text-sm">Transparenz</span>
+              <div className="flex items-center gap-1 mr-2">
+                <span className="text-sm font-medium">System-Informationen</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0 hover:bg-accent/50 transition-colors">
                         <HelpCircle className="h-3 w-3 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent align="end" className="max-w-xs">
-                      <p className="text-xs">Aktivieren oder deaktivieren Sie detaillierte Informationen darüber, wie die KI Ihre Reflexion analysiert.</p>
+                      <p className="text-xs">Aktivieren oder deaktivieren Sie detaillierte Informationen darüber, wie das System Ihre Daten analysiert.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -275,15 +325,16 @@ export default function NewAdaptiveReflection() {
               <Switch 
                 checked={showTransparency} 
                 onCheckedChange={setShowTransparency}
-                aria-label="Transparenz aktivieren oder deaktivieren"
+                aria-label="Transparenz-Modus umschalten"
+                className="data-[state=checked]:bg-primary mr-4"
               />
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Reflexionsformular */}
           <Card className="shadow-lg">
@@ -331,7 +382,7 @@ export default function NewAdaptiveReflection() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input id="title" placeholder="Geben Sie einen Titel ein" />
+                <Input id="title" placeholder="Geben Sie einen Titel ein" suppressHydrationWarning={true} />
               </div>
               
               <div className="space-y-2">
@@ -360,8 +411,8 @@ export default function NewAdaptiveReflection() {
                     </Badge>
                   )}
                 </div>
-                <Textarea 
-                  id="reflection" 
+                <Textarea
+                  suppressHydrationWarning={true}
                   placeholder="Beschreiben Sie Ihre Erfahrungen und Erkenntnisse..."
                   className="min-h-[250px] resize-none"
                   value={reflectionText}
@@ -449,22 +500,22 @@ export default function NewAdaptiveReflection() {
               <div className="flex gap-4">
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="date">Datum</Label>
-                  <Input id="date" type="date" />
+                  <Input id="date" type="date" suppressHydrationWarning={true} />
                 </div>
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="category">Kategorie</Label>
-                  <Input id="category" placeholder="z.B. Studium, Arbeit" />
+                  <Input id="category" placeholder="z.B. Studium, Arbeit" suppressHydrationWarning={true} />
                 </div>
               </div>
               
               <div className="flex gap-4 pt-4">
                 <Link href="/adaptive/reflections" className="flex-1">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full hover:bg-accent transition-colors">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Zurück
                   </Button>
                 </Link>
-                <Button className="flex-1" variant="default">
+                <Button className="flex-1 hover:bg-primary/90 transition-colors" variant="default">
                   <Save className="h-4 w-4 mr-2" />
                   Reflexion speichern
                 </Button>
@@ -483,7 +534,7 @@ export default function NewAdaptiveReflection() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <Button variant="ghost" size="icon" className="h-5 w-5 p-0 hover:bg-accent/50">
                             <HelpCircle className="h-3 w-3 text-muted-foreground" />
                           </Button>
                         </TooltipTrigger>
@@ -496,25 +547,6 @@ export default function NewAdaptiveReflection() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs">Transparenz</span>
-                            <Switch 
-                              checked={showTransparency} 
-                              onCheckedChange={setShowTransparency}
-                              aria-label="Transparenz-Erklärungen umschalten"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent align="end" className="max-w-xs">
-                          <p className="text-xs">Aktivieren Sie diese Option, um detaillierte Erklärungen zur KI-Analyse zu erhalten.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-6 pb-3">
@@ -523,33 +555,42 @@ export default function NewAdaptiveReflection() {
                   <RadarChart data={KPIs} />
                   
                   {/* KPIs Legend */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 mt-4">
                     {KPIs.map(kpi => (
-                      <div key={kpi.name} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+                      <div key={kpi.name} className="flex items-center gap-2 group p-1.5 rounded-lg hover:bg-accent/30 transition-colors">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: kpi.color }}></div>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="text-sm cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-2">
-                                {kpi.name}: <strong>{kpi.value}%</strong>
-                              </span>
+                              <div className="flex items-center gap-1 cursor-help">
+                                <span className="text-sm whitespace-nowrap font-medium">{kpi.name}</span>
+                                <span className="text-sm font-bold">{kpi.value}%</span>
+                              </div>
                             </TooltipTrigger>
-                            <TooltipContent align="center" className="max-w-xs">
-                              <div>
-                                <p className="text-xs font-medium mb-1">{kpi.name}</p>
-                                <p className="text-xs">
+                            <TooltipContent className="w-60">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">
+                                  {kpi.name === "Reflexionstiefe" && "Tiefe Ihrer Analyse"}
+                                  {kpi.name === "Kohärenz" && "Klarheit & Struktur"}
+                                  {kpi.name === "Metakognition" && "Reflexion über Ihr Denken"}
+                                  {kpi.name === "Handlungsorientierung" && "Konkrete nächste Schritte"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
                                   {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend Sie über Erfahrungen reflektieren - von beschreibend bis kritisch-analysierend."}
                                   {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in Ihrem Text."}
                                   {kpi.name === "Metakognition" && "Erfasst, wie bewusst Sie über Ihr eigenes Denken und Ihre eigenen Lernprozesse reflektieren."}
                                   {kpi.name === "Handlungsorientierung" && "Bewertet, ob Sie konkrete nächste Schritte oder Anwendungsmöglichkeiten aus Ihren Erkenntnissen ableiten."}
                                 </p>
                                 {showTransparency && (
-                                  <div className="mt-1 pt-1 border-t border-muted">
-                                    <p className="text-xs text-muted-foreground">
-                                      {kpi.name === "Reflexionstiefe" && "Berechnet durch: Analyse kausaler Ausdrücke, kritischer Phrasen und Text-Komplexitätsmetriken."}
-                                      {kpi.name === "Kohärenz" && "Berechnet durch: Analyse von Satzübergängen, thematischer Konsistenz und Textfluss."}
-                                      {kpi.name === "Metakognition" && "Berechnet durch: Identifikation selbstreflexiver Ausdrücke und Muster des 'Denkens über das Denken'."}
-                                      {kpi.name === "Handlungsorientierung" && "Berechnet durch: Erkennung konkreter Aktionspläne, Vorhaben und zukünftiger Anwendungen."}
+                                  <div className="bg-muted/60 p-2 rounded-md text-xs text-muted-foreground mt-1">
+                                    <p className="flex items-center gap-1">
+                                      <Lock className="h-3 w-3" />
+                                      <span>
+                                        {kpi.name === "Reflexionstiefe" && "Berechnet durch: Analyse kausaler Ausdrücke, kritischer Phrasen und Text-Komplexitätsmetriken."}
+                                        {kpi.name === "Kohärenz" && "Berechnet durch: Analyse von Satzübergängen, thematischer Konsistenz und Textfluss."}
+                                        {kpi.name === "Metakognition" && "Berechnet durch: Identifikation selbstreflexiver Ausdrücke und Muster des 'Denkens über das Denken'."}
+                                        {kpi.name === "Handlungsorientierung" && "Berechnet durch: Erkennung konkreter Aktionspläne, Vorhaben und zukünftiger Anwendungen."}
+                                      </span>
                                     </p>
                                   </div>
                                 )}
@@ -566,76 +607,55 @@ export default function NewAdaptiveReflection() {
               {/* Transparency Section */}
               {showTransparency && (
                 <CardFooter className="border-t p-4 flex flex-col items-start">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <Info className="h-4 w-4 text-primary" />
-                    Wie diese Analyse funktioniert
-                  </h4>
+                  <div className="flex items-center justify-between w-full mb-4">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <Info className="h-4 w-4 text-primary" />
+                      <span>KI-Analyse Erklärung</span>
+                    </h4>
+                    
+                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                      <Lock className="h-3 w-3 mr-1" />
+                      <span>KI-System</span>
+                    </Badge>
+                  </div>
                   
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="item-1">
-                      <AccordionTrigger className="text-xs py-2">
-                        <div className="flex items-center gap-1">
-                          <span>Bewertungsmethodik</span>
-                          <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                            NLP-Algorithmus
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-xs text-muted-foreground">
-                        <p>Die KI-Analyse verwendet Natural Language Processing (NLP), um Ihre Reflexion in Echtzeit zu bewerten. Die Bewertung basiert auf linguistischen Mustern, semantischer Analyse und Strukturmerkmalen in Ihrem Text.</p>
-                        <p className="mt-1 flex items-center gap-1 text-primary-foreground/70">
-                          <Lock className="h-3 w-3" />
-                          <span>Technologie: Transformerbasierte Textanalyse mit domänenspezifischem Training für Reflexionstexte</span>
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-2">
-                      <AccordionTrigger className="text-xs py-2">
-                        <div className="flex items-center gap-1">
-                          <span>Reflexionstiefe-Indikatoren</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-xs text-muted-foreground">
-                        <p>Diese Metrik misst, wie tief Sie Ihre Erfahrungen analysieren. Sie berücksichtigt kausale Ausdrücke, kritisches Denken und die Komplexität Ihrer Gedanken.</p>
-                        <ul className="list-disc list-inside mt-1">
-                          <li>Geringe Tiefe: Hauptsächlich beschreibender Text, wenig Analyse</li>
-                          <li>Mittlere Tiefe: Enthält analytische Elemente (Warum? Wie?) und Kausalverbindungen</li>
-                          <li>Hohe Tiefe: Kritische Perspektiven, alternative Blickwinkel, tiefe Einsichten</li>
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-3">
-                      <AccordionTrigger className="text-xs py-2">
-                        <div className="flex items-center gap-1">
-                          <span>Metakognitive Muster</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-xs text-muted-foreground">
-                        <p>Diese Metrik erfasst, wie häufig Sie metakognitive Ausdrücke verwenden, die auf Ihr eigenes Denken und Lernen verweisen, wie "Ich erkenne...", "Mir ist aufgefallen..." oder "Ich verstehe jetzt..."</p>
-                        <p className="mt-1">Hohe Metakognitionswerte deuten auf eine starke Fähigkeit zur Selbstreflexion und ein bewusstes Verständnis der eigenen Denkprozesse hin.</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-4">
-                      <AccordionTrigger className="text-xs py-2">
-                        <div className="flex items-center gap-1">
-                          <span>Datenverarbeitung und Privatsphäre</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-xs text-muted-foreground">
-                        <p>Ihre Reflexionen werden für die Analyse verarbeitet, aber alle personenbezogenen Daten bleiben geschützt. Die Analyse erfolgt direkt im Browser und mit fortschrittlichen Schutzmechanismen.</p>
-                        <div className="mt-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-950/30 flex gap-2">
-                          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-amber-800 dark:text-amber-300">Hinweis zur Datennutzung</p>
-                            <p className="text-amber-700 dark:text-amber-400">Anonymisierte Nutzungsdaten können zur Verbesserung des Systems verwendet werden. Sie können dies in den Einstellungen deaktivieren.</p>
+                  <div className="w-full space-y-3">
+                    <div className="p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                            <BrainCircuit className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                           </div>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                        <div>
+                          <h5 className="text-sm font-medium text-blue-800 dark:text-blue-200">Bewertungsmethodik</h5>
+                          <p className="text-xs text-blue-700/90 dark:text-blue-300/90 mt-0.5">
+                            Die vier Dimensionen (Tiefe, Kohärenz, Metakognition, Handlungsorientierung) werden durch NLP-Algorithmen in Echtzeit gemessen.
+                          </p>
+                          <div className="mt-2 p-1.5 rounded bg-blue-100/50 dark:bg-blue-900/30 text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+                            <Lock className="h-3 w-3" />
+                            <span>Transformerbasierte Textanalyse mit domänenspezifischem Training</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-muted border">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-background">
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          </div>
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-medium">Datenschutz</h5>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Ihre Reflexionen werden lokal analysiert. Die Ergebnisse dienen ausschließlich der persönlichen Verbesserung Ihrer Reflexionsfähigkeit.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardFooter>
               )}
             </Card>
@@ -804,7 +824,7 @@ export default function NewAdaptiveReflection() {
             </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 } 

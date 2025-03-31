@@ -65,13 +65,6 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t py-6">
-        <div className="container text-center">
-          <p className="text-sm text-muted-foreground">
-            Usability Test Version 1.0 | Bei Fragen wenden Sie sich bitte an die Testleitung
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }

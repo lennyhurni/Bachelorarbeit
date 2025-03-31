@@ -59,12 +59,12 @@ export function Sidebar({ version }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-background border-r transition-all duration-300 relative",
+        "bg-background border-r transition-all duration-300 relative h-full",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className={cn(
-        "flex h-screen flex-col gap-4 p-4 transition-all duration-300",
+        "flex flex-col gap-4 p-4 transition-all duration-300 h-full",
         collapsed ? "w-16" : "w-64"
       )}>
         <div className="flex items-center justify-between">

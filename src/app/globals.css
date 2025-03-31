@@ -119,4 +119,28 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    height: 100%;
+  }
+}
+
+/* Interactive element styles */
+.button-hover {
+  @apply transition-all duration-200 hover:brightness-105 active:scale-95;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-md hover:border-primary/20;
+}
+
+.info-tooltip {
+  @apply cursor-help hover:text-primary transition-colors;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .button-hover,
+  .card-hover {
+    @apply transition-none transform-none;
+  }
 }

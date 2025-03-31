@@ -255,6 +255,7 @@ export default function SimpleDashboard() {
                     </TooltipProvider>
                   </div>
                   <span>{stats.averageDepth.descriptive}%</span>
+
                 </div>
                 <Progress value={stats.averageDepth.descriptive} className="h-2 bg-blue-100" />
                 <p className="text-xs text-muted-foreground">
