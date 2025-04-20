@@ -5,53 +5,45 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import {
-  BookOpen,
   Home,
   Settings,
   UserCircle,
   FileText,
   HelpCircle,
   ChevronLeft,
-  ChevronRight,
   Brain,
-  Plus
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-interface SidebarProps {
-  version: "simple" | "adaptive"
-}
-
-export function Sidebar({ version }: SidebarProps) {
+export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const isAdaptive = version === "adaptive"
 
   const routes = [
     {
       title: "Dashboard",
-      href: `/${version}/dashboard`,
+      href: "/adaptive/dashboard",
       icon: Home
     },
     {
       title: "Reflexionen",
-      href: `/${version}/reflections`,
+      href: "/adaptive/reflections",
       icon: FileText
     },
     {
       title: "Profil",
-      href: `/${version}/profile`,
+      href: "/adaptive/profile",
       icon: UserCircle
     },
     {
       title: "Einstellungen",
-      href: `/${version}/settings`,
+      href: "/adaptive/settings",
       icon: Settings
     },
     {
       title: "Hilfe",
-      href: `/${version}/help`,
+      href: "/adaptive/help",
       icon: HelpCircle
     }
   ]
@@ -72,13 +64,9 @@ export function Sidebar({ version }: SidebarProps) {
             "flex items-center gap-2 transition-all duration-300",
             collapsed ? "opacity-0 w-0" : "opacity-100"
           )}>
-            {isAdaptive ? (
-              <Brain className="h-6 w-6 text-primary" />
-            ) : (
-              <BookOpen className="h-6 w-6 text-primary" />
-            )}
+            <Brain className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold">
-              {isAdaptive ? "Prototyp 2" : "Prototyp 1"}
+              Reflexionstool
             </span>
           </div>
           <Button

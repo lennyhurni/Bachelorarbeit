@@ -24,15 +24,9 @@ export default function ReflectionDetail() {
   const pathname = usePathname()
   
   // Extract version from pathname
-  let version = "simple"
-  if (pathname.startsWith("/simple")) {
-    version = "simple"
-  } else if (pathname.startsWith("/adaptive")) {
-    version = "adaptive"
-  }
-  
+  let version = "adaptive"
+
   const id = params.id as string
-  const isAdaptive = version === "adaptive"
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,10 +41,10 @@ export default function ReflectionDetail() {
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link href={`/${version}/reflections`} className="hover:text-foreground">
-                {isAdaptive ? "KI-Reflexionen" : "Reflexionen"}
+                KI-Reflexionen
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground">Reflexion {id}</span>
+              <span className="text-foreground">Reflexionsdetails</span>
             </div>
           </div>
         </div>
@@ -66,13 +60,9 @@ export default function ReflectionDetail() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              {isAdaptive ? (
-                <Brain className="h-8 w-8 text-primary" />
-              ) : (
-                <BookOpen className="h-8 w-8 text-primary" />
-              )}
+              <Brain className="h-8 w-8 text-primary" />
               <h1 className="text-3xl font-bold">
-                {isAdaptive ? "KI-Reflexion" : "Reflexion"}
+                KI-Reflexion
               </h1>
             </div>
           </div>
@@ -129,28 +119,26 @@ export default function ReflectionDetail() {
             </CardContent>
           </Card>
 
-          {isAdaptive && (
-            <Card className="border-primary/30 bg-primary/5">
-              <CardHeader>
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <CardTitle>KI-Erkenntnisse</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <CardTitle>KI-Erkenntnisse</CardTitle>
+                  <Lightbulb className="h-4 w-4 text-primary shrink-0" />
+                  <p className="text-sm">Sie haben gute Fortschritte im Verständnis der Grundkonzepte gemacht. Vielleicht möchten Sie als nächstes ein kleines Projekt planen, um das Gelernte anzuwenden?</p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-sm">Sie haben gute Fortschritte im Verständnis der Grundkonzepte gemacht. Vielleicht möchten Sie als nächstes ein kleines Projekt planen, um das Gelernte anzuwenden?</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-sm">Ihre regelmässigen Übungen sind ein ausgezeichneter Ansatz. Erwägen Sie, Ihre Lernfortschritte zu dokumentieren, um Ihre Entwicklung im Laufe der Zeit zu verfolgen.</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary shrink-0" />
+                  <p className="text-sm">Ihre regelmässigen Übungen sind ein ausgezeichneter Ansatz. Erwägen Sie, Ihre Lernfortschritte zu dokumentieren, um Ihre Entwicklung im Laufe der Zeit zu verfolgen.</p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

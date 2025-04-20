@@ -40,8 +40,7 @@ interface UserSettings {
 
 export default function SettingsPage() {
   const pathname = usePathname()
-  const version = pathname.startsWith("/adaptive") ? "adaptive" : "simple"
-  const isAdaptive = version === "adaptive"
+  const version = "adaptive"
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
@@ -116,7 +115,7 @@ export default function SettingsPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-foreground">{isAdaptive ? "KI-Einstellungen" : "Einstellungen"}</span>
+              <span className="text-foreground">{version}</span>
             </div>
           </div>
           <Button 
@@ -142,12 +141,8 @@ export default function SettingsPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Settings Header */}
         <div className="flex items-center gap-2 mb-8">
-          {isAdaptive ? (
-            <Brain className="h-8 w-8 text-primary" />
-          ) : (
-            <Settings className="h-8 w-8 text-primary" />
-          )}
-          <h1 className="text-3xl font-bold">{isAdaptive ? "KI-Einstellungen" : "Einstellungen"}</h1>
+          <Brain className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold">KI-Einstellungen</h1>
         </div>
 
         <div className="max-w-2xl mx-auto">
@@ -265,56 +260,54 @@ export default function SettingsPage() {
           </Card>
 
           {/* KI-Einstellungen (nur in der adaptiven Version) */}
-          {isAdaptive && (
-            <Card className="mb-6 border-primary/30 bg-primary/5">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-primary" />
-                  <CardTitle>KI-Einstellungen</CardTitle>
-                </div>
-                <CardDescription>
-                  Passen Sie die KI-Unterstützung an Ihre Bedürfnisse an
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Automatische Vorschläge</Label>
-                    <p className="text-sm text-muted-foreground">
-                      KI schlägt automatisch Reflexionsthemen vor
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.aiSuggestions}
-                    onCheckedChange={(checked) => 
-                      setSettings(prev => ({ ...prev, aiSuggestions: checked }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <Label>KI-Unterstützungsgrad</Label>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Bestimmen Sie, wie aktiv die KI Sie unterstützen soll
+          <Card className="mb-6 border-primary/30 bg-primary/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                <CardTitle>KI-Einstellungen</CardTitle>
+              </div>
+              <CardDescription>
+                Passen Sie die KI-Unterstützung an Ihre Bedürfnisse an
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Automatische Vorschläge</Label>
+                  <p className="text-sm text-muted-foreground">
+                    KI schlägt automatisch Reflexionsthemen vor
                   </p>
-                  <Slider
-                    value={[settings.aiLevel]}
-                    onValueChange={(value) => 
-                      setSettings(prev => ({ ...prev, aiLevel: value[0] }))
-                    }
-                    max={100}
-                    step={25}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Minimal</span>
-                    <span>Ausgewogen</span>
-                    <span>Proaktiv</span>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <Switch
+                  checked={settings.aiSuggestions}
+                  onCheckedChange={(checked) => 
+                    setSettings(prev => ({ ...prev, aiSuggestions: checked }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-4">
+                <Label>KI-Unterstützungsgrad</Label>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Bestimmen Sie, wie aktiv die KI Sie unterstützen soll
+                </p>
+                <Slider
+                  value={[settings.aiLevel]}
+                  onValueChange={(value) => 
+                    setSettings(prev => ({ ...prev, aiLevel: value[0] }))
+                  }
+                  max={100}
+                  step={25}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Minimal</span>
+                  <span>Ausgewogen</span>
+                  <span>Proaktiv</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Datenschutz */}
           <Card>

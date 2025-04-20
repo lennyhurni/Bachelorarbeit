@@ -22,13 +22,13 @@ import {
   HelpCircle,
   Compass,
   Rocket,
-  Zap
+  Zap,
+  Layers
 } from "lucide-react"
 
 export default function HelpPage() {
   const pathname = usePathname()
-  const version = pathname.startsWith("/adaptive") ? "adaptive" : "simple"
-  const isAdaptive = version === "adaptive"
+  const version = "adaptive"
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +42,7 @@ export default function HelpPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-foreground">{isAdaptive ? "KI-Hilfe" : "Hilfe"}</span>
+              <span className="text-foreground">KI-Hilfe</span>
             </div>
           </div>
         </div>
@@ -51,12 +51,8 @@ export default function HelpPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Help Header */}
         <div className="flex items-center gap-2 mb-8">
-          {isAdaptive ? (
-            <Brain className="h-8 w-8 text-primary" />
-          ) : (
-            <HelpCircle className="h-8 w-8 text-primary" />
-          )}
-          <h1 className="text-3xl font-bold">{isAdaptive ? "KI-Hilfe" : "Hilfe"}</h1>
+          <Brain className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold">KI-Hilfe</h1>
         </div>
 
         <div className="mx-auto max-w-5xl">
@@ -72,25 +68,24 @@ export default function HelpPage() {
 
           {/* Main Content */}
           <Tabs defaultValue="start" className="space-y-4">
-            <TabsList className={`grid w-full ${isAdaptive ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} grid-cols-2`}>
+            <TabsList className="grid w-full lg:grid-cols-4 grid-cols-2">
               <TabsTrigger value="start" className="gap-2">
                 <Compass className="h-4 w-4" />
-                <span>Erste Schritte</span>
+                <span className="hidden md:inline">Erste Schritte</span>
+                <span className="inline md:hidden">Start</span>
               </TabsTrigger>
-              <TabsTrigger value="features" className="gap-2">
-                <Rocket className="h-4 w-4" />
-                <span>Funktionen</span>
+              <TabsTrigger value="faq" className="gap-2">
+                <HelpCircle className="h-4 w-4" />
+                <span>FAQ</span>
               </TabsTrigger>
               <TabsTrigger value="process" className="gap-2">
-                <Lightbulb className="h-4 w-4" />
+                <Layers className="h-4 w-4" />
                 <span>Reflexionsprozess</span>
               </TabsTrigger>
-              {isAdaptive && (
-                <TabsTrigger value="ai" className="gap-2">
-                  <Brain className="h-4 w-4" />
-                  <span>KI-Unterstützung</span>
-                </TabsTrigger>
-              )}
+              <TabsTrigger value="ai" className="gap-2">
+                <Brain className="h-4 w-4" />
+                <span>KI-Unterstützung</span>
+              </TabsTrigger>
             </TabsList>
 
             <div className="flex flex-col gap-4">
@@ -154,79 +149,19 @@ export default function HelpPage() {
                     </Card>
                   </TabsContent>
 
-                  <TabsContent value="features" className="space-y-6">
+                  <TabsContent value="faq" className="space-y-6">
                     <Card>
                       <CardHeader>
                         <div className="flex items-center gap-2">
-                          <Rocket className="h-6 w-6 text-primary" />
-                          <CardTitle>Hauptfunktionen</CardTitle>
+                          <HelpCircle className="h-6 w-6 text-primary" />
+                          <CardTitle>FAQ</CardTitle>
                         </div>
                         <CardDescription>
-                          Entdecken Sie alle Möglichkeiten von Reflectify
+                          Häufig gestellte Fragen
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid gap-6 md:grid-cols-2">
-                          <div className="space-y-4 rounded-lg border p-6">
-                            <div className="flex items-center gap-3">
-                              <div className="rounded-lg bg-primary/10 p-2">
-                                <PenTool className="h-5 w-5 text-primary" />
-                              </div>
-                              <h3 className="font-medium">Reflexionen erstellen</h3>
-                            </div>
-                            <ul className="ml-4 space-y-2 text-sm text-muted-foreground">
-                              <li>• Strukturierte Eingabefelder</li>
-                              <li>• Vorlagen für verschiedene Reflexionstypen</li>
-                              <li>• Automatische Speicherung</li>
-                              <li>• Tags und Kategorisierung</li>
-                            </ul>
-                          </div>
-
-                          <div className="space-y-4 rounded-lg border p-6">
-                            <div className="flex items-center gap-3">
-                              <div className="rounded-lg bg-primary/10 p-2">
-                                <LineChart className="h-5 w-5 text-primary" />
-                              </div>
-                              <h3 className="font-medium">Fortschrittsanalyse</h3>
-                            </div>
-                            <ul className="ml-4 space-y-2 text-sm text-muted-foreground">
-                              <li>• Detaillierte Statistiken</li>
-                              <li>• Entwicklungstrends</li>
-                              <li>• Lernmuster erkennen</li>
-                              <li>• Exportfunktionen</li>
-                            </ul>
-                          </div>
-
-                          <div className="space-y-4 rounded-lg border p-6">
-                            <div className="flex items-center gap-3">
-                              <div className="rounded-lg bg-primary/10 p-2">
-                                <Clock className="h-5 w-5 text-primary" />
-                              </div>
-                              <h3 className="font-medium">Zeitmanagement</h3>
-                            </div>
-                            <ul className="ml-4 space-y-2 text-sm text-muted-foreground">
-                              <li>• Erinnerungsfunktion</li>
-                              <li>• Flexible Zeitplanung</li>
-                              <li>• Regelmässige Intervalle</li>
-                              <li>• Kalenderintegration</li>
-                            </ul>
-                          </div>
-
-                          <div className="space-y-4 rounded-lg border p-6">
-                            <div className="flex items-center gap-3">
-                              <div className="rounded-lg bg-primary/10 p-2">
-                                <Settings className="h-5 w-5 text-primary" />
-                              </div>
-                              <h3 className="font-medium">Personalisierung</h3>
-                            </div>
-                            <ul className="ml-4 space-y-2 text-sm text-muted-foreground">
-                              <li>• Individuelles Design</li>
-                              <li>• Benachrichtigungseinstellungen</li>
-                              <li>• Sprachauswahl</li>
-                              <li>• Datenschutzoptionen</li>
-                            </ul>
-                          </div>
-                        </div>
+                        {/* FAQ content */}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -300,96 +235,94 @@ export default function HelpPage() {
                     </Card>
                   </TabsContent>
 
-                  {isAdaptive && (
-                    <TabsContent value="ai" className="space-y-6">
-                      <Card className="border-primary/30 bg-primary/5">
-                        <CardHeader>
-                          <div className="flex items-center gap-2">
-                            <Brain className="h-6 w-6 text-primary" />
-                            <CardTitle>KI-Unterstützung</CardTitle>
-                          </div>
-                          <CardDescription>
-                            Entdecken Sie die intelligenten Funktionen
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-6 md:grid-cols-2">
-                            <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
-                              <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-primary/10 p-2">
-                                  <Sparkles className="h-5 w-5 text-primary" />
-                                </div>
-                                <h3 className="font-medium">Intelligente Vorschläge</h3>
+                  <TabsContent value="ai" className="space-y-6">
+                    <Card className="border-primary/30 bg-primary/5">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Brain className="h-6 w-6 text-primary" />
+                          <CardTitle>KI-Unterstützung</CardTitle>
+                        </div>
+                        <CardDescription>
+                          Entdecken Sie die intelligenten Funktionen
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-lg bg-primary/10 p-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                Die KI analysiert Ihre bisherigen Reflexionen und schlägt 
-                                passende Themen und Fragen vor, die zu Ihrem Lernstil passen.
-                              </p>
-                              <div className="rounded-md bg-primary/10 p-3">
-                                <p className="text-xs text-primary">
-                                  Tipp: Je mehr Sie reflektieren, desto besser werden die Vorschläge!
-                                </p>
-                              </div>
+                              <h3 className="font-medium">Intelligente Vorschläge</h3>
                             </div>
-
-                            <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
-                              <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-primary/10 p-2">
-                                  <MessageSquareMore className="h-5 w-5 text-primary" />
-                                </div>
-                                <h3 className="font-medium">Gezielte Nachfragen</h3>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                Durch intelligente Nachfragen hilft die KI, Ihre Reflexionen 
-                                zu vertiefen und neue Perspektiven zu entdecken.
+                            <p className="text-sm text-muted-foreground">
+                              Die KI analysiert Ihre bisherigen Reflexionen und schlägt 
+                              passende Themen und Fragen vor, die zu Ihrem Lernstil passen.
+                            </p>
+                            <div className="rounded-md bg-primary/10 p-3">
+                              <p className="text-xs text-primary">
+                                Tipp: Je mehr Sie reflektieren, desto besser werden die Vorschläge!
                               </p>
-                              <div className="rounded-md bg-primary/10 p-3">
-                                <p className="text-xs text-primary">
-                                  Tipp: Lassen Sie sich von den Fragen inspirieren!
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
-                              <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-primary/10 p-2">
-                                  <LineChart className="h-5 w-5 text-primary" />
-                                </div>
-                                <h3 className="font-medium">Musteranalyse</h3>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                Die KI erkennt Muster in Ihren Reflexionen und gibt 
-                                personalisierte Empfehlungen für Ihre Entwicklung.
-                              </p>
-                              <div className="rounded-md bg-primary/10 p-3">
-                                <p className="text-xs text-primary">
-                                  Tipp: Überprüfen Sie regelmässig Ihre Fortschrittsanalyse!
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
-                              <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-primary/10 p-2">
-                                  <Zap className="h-5 w-5 text-primary" />
-                                </div>
-                                <h3 className="font-medium">Adaptive Unterstützung</h3>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                Die KI passt sich Ihrem Lernstil an und bietet genau die 
-                                Unterstützung, die Sie benötigen.
-                              </p>
-                              <div className="rounded-md bg-primary/10 p-3">
-                                <p className="text-xs text-primary">
-                                  Tipp: Passen Sie den KI-Unterstützungsgrad in den Einstellungen an!
-                                </p>
-                              </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-                  )}
+
+                          <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-lg bg-primary/10 p-2">
+                                <MessageSquareMore className="h-5 w-5 text-primary" />
+                              </div>
+                              <h3 className="font-medium">Gezielte Nachfragen</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Durch intelligente Nachfragen hilft die KI, Ihre Reflexionen 
+                              zu vertiefen und neue Perspektiven zu entdecken.
+                            </p>
+                            <div className="rounded-md bg-primary/10 p-3">
+                              <p className="text-xs text-primary">
+                                Tipp: Lassen Sie sich von den Fragen inspirieren!
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-lg bg-primary/10 p-2">
+                                <LineChart className="h-5 w-5 text-primary" />
+                              </div>
+                              <h3 className="font-medium">Musteranalyse</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Die KI erkennt Muster in Ihren Reflexionen und gibt 
+                              personalisierte Empfehlungen für Ihre Entwicklung.
+                            </p>
+                            <div className="rounded-md bg-primary/10 p-3">
+                              <p className="text-xs text-primary">
+                                Tipp: Überprüfen Sie regelmässig Ihre Fortschrittsanalyse!
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-4 rounded-lg bg-background p-6">
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-lg bg-primary/10 p-2">
+                                <Zap className="h-5 w-5 text-primary" />
+                              </div>
+                              <h3 className="font-medium">Adaptive Unterstützung</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Die KI passt sich Ihrem Lernstil an und bietet genau die 
+                              Unterstützung, die Sie benötigen.
+                            </p>
+                            <div className="rounded-md bg-primary/10 p-3">
+                              <p className="text-xs text-primary">
+                                Tipp: Passen Sie den KI-Unterstützungsgrad in den Einstellungen an!
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
                 </div>
               </ScrollArea>
 

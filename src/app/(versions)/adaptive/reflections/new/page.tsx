@@ -35,7 +35,7 @@ import {
 } from "lucide-react"
 import { TransparencyInfo, TransparencyInfoGroup } from "@/components/transparency-info"
 
-// Radar chart component for KPIs - completely redesigned 
+// Radar chart component with further refinements
 const RadarChart = ({ data }: { data: { name: string, value: number, color: string }[] }) => {
   // Create shortened versions of dimension names for radar chart
   const dimensionLabels: Record<string, string> = {
@@ -44,6 +44,14 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
     "Metakognition": "Meta",
     "Handlungsorientierung": "Handlung"
   };
+  
+  // Calculate average value for summary
+  const avgValue = Math.round(data.reduce((sum, kpi) => sum + kpi.value, 0) / (data.length || 1));
+  const chartSize = 280; // Chart size in pixels
+  const maxRadiusPercentage = 42; // Maximum radius as percentage of chart size
+  const pointDisplayMinRadius = 5; // Minimum radius for points to ensure visibility
+  const labelDistance = 52; // Distance of labels from center
+  const centerCircleSize = 16; // Size of center circle in percentage of chart size
   
   return (
     <div className="relative w-full h-[280px] flex items-center justify-center">
@@ -68,24 +76,47 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
         );
       })}
       
-      {/* KPI points with enhanced hover effect */}
+      {/* Connecting polygon between points with lower opacity fill */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
+        <polygon 
+          points={data.map((kpi, index) => {
+            const angle = (Math.PI * 2 * index) / data.length;
+            // Calculate radius based on value but ensure minimum display size
+            const radiusPercentage = kpi.value === 0 ? pointDisplayMinRadius : 
+                                   Math.max(pointDisplayMinRadius, (kpi.value / 100) * maxRadiusPercentage);
+            const x = 50 + Math.cos(angle) * radiusPercentage;
+            const y = 50 + Math.sin(angle) * radiusPercentage;
+            return `${x},${y}`;
+          }).join(' ')}
+          fill="rgba(59, 130, 246, 0.15)"
+          stroke="#3b82f6"
+          strokeWidth="1.5"
+          strokeDasharray="0"
+          strokeOpacity="0.6"
+        />
+      </svg>
+      
+      {/* KPI points with enhanced hover effect - drawn on top of polygon and center circle */}
       {data.map((kpi, index) => {
         const angle = (Math.PI * 2 * index) / data.length;
-        const radius = (kpi.value / 100) * 42; // Slightly reduced for better layout
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
+        // Calculate radius based on value but ensure minimum display size
+        const radiusPercentage = kpi.value === 0 ? pointDisplayMinRadius : 
+                               Math.max(pointDisplayMinRadius, (kpi.value / 100) * maxRadiusPercentage);
+        const x = Math.cos(angle) * radiusPercentage;
+        const y = Math.sin(angle) * radiusPercentage;
         
         return (
           <div key={kpi.name} className="absolute" style={{
             top: `calc(50% - ${y}%)`,
             left: `calc(50% + ${x}%)`,
-            transform: 'translate(-50%, -50%)'
+            transform: 'translate(-50%, -50%)',
+            zIndex: 3 // Ensure points are displayed on top
           }}>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div 
-                    className="w-3 h-3 rounded-full cursor-help transition-all duration-200 hover:scale-150 hover:ring-2 ring-offset-2 ring-offset-background ring-primary/30" 
+                    className="w-3 h-3 rounded-full cursor-help transition-all duration-200 hover:scale-150 hover:ring-2 ring-offset-2 ring-offset-background ring-primary/30 border border-white dark:border-gray-800" 
                     style={{ backgroundColor: kpi.color }}
                   ></div>
                 </TooltipTrigger>
@@ -106,22 +137,23 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
         )
       })}
       
-      {/* Improved label positioning with better spacing - moved outside chart area */}
+      {/* Improved label positioning with better spacing - moved further outside chart area */}
       {data.map((kpi, index) => {
         const angle = (Math.PI * 2 * index) / data.length;
-        const radius = 52; // Fixed position outside the data points
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
+        // Fixed position outside the data points, further than before
+        const x = Math.cos(angle) * labelDistance;
+        const y = Math.sin(angle) * labelDistance;
         
         // Enhanced label with badge-like style for better readability
         return (
           <div 
             key={`label-${kpi.name}`} 
-            className="absolute py-0.5 px-1.5 rounded-md bg-background/80 backdrop-blur-sm text-xs font-medium border border-border/30 shadow-sm" 
+            className="absolute py-0.5 px-1.5 rounded-md bg-background/90 backdrop-blur-sm text-xs font-medium border border-border/30 shadow-sm" 
             style={{
               top: `calc(50% - ${y}%)`,
               left: `calc(50% + ${x}%)`,
-              transform: 'translate(-50%, -50%)'
+              transform: 'translate(-50%, -50%)',
+              zIndex: 2 // Ensure labels are above the polygon
             }}
           >
             <div className="flex items-center gap-1">
@@ -132,30 +164,16 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
         )
       })}
       
-      {/* Connecting lines between points with subtle fade effect */}
-      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
-        <polygon 
-          points={data.map((kpi, index) => {
-            const angle = (Math.PI * 2 * index) / data.length;
-            const radius = (kpi.value / 100) * 42; // Match the point positioning
-            const x = 50 + Math.cos(angle) * radius;
-            const y = 50 + Math.sin(angle) * radius;
-            return `${x},${y}`;
-          }).join(' ')}
-          fill="rgba(59, 130, 246, 0.15)"
-          stroke="#3b82f6"
-          strokeWidth="1.5"
-          strokeDasharray="0"
-          strokeOpacity="0.6"
-        />
-      </svg>
-      
-      {/* Central KPI summary for quick overview */}
-      <div className="absolute flex flex-col items-center justify-center rounded-full bg-muted/40 backdrop-blur-sm border border-border/20 w-16 h-16 shadow-sm">
-        <span className="text-lg font-bold">
-          {Math.round(data.reduce((sum, kpi) => sum + kpi.value, 0) / data.length)}%
-        </span>
-        <span className="text-[10px] text-muted-foreground leading-none">Gesamt</span>
+      {/* Central KPI summary - displayed on top of grid but below points */}
+      <div className="absolute flex flex-col items-center justify-center rounded-full bg-muted/40 backdrop-blur-sm border border-border/20 w-16 h-16 shadow-sm" style={{ zIndex: 2 }}>
+        {data.some(kpi => kpi.value > 0) ? (
+          <>
+            <span className="text-lg font-bold">{avgValue}%</span>
+            <span className="text-[10px] text-muted-foreground leading-none">Gesamt</span>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground">Keine Daten</span>
+        )}
       </div>
     </div>
   )

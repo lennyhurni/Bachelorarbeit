@@ -24,8 +24,7 @@ import {
 
 export default function Profile() {
   const pathname = usePathname()
-  const version = pathname.startsWith("/adaptive") ? "adaptive" : "simple"
-  const isAdaptive = version === "adaptive"
+  const version = "adaptive"
 
   // Beispieldaten (später durch echte Daten ersetzen)
   const user = {
@@ -67,11 +66,7 @@ export default function Profile() {
       <main className="container mx-auto px-4 py-8">
         {/* Profil-Header */}
         <div className="flex items-center gap-2 mb-8">
-          {isAdaptive ? (
-            <Brain className="h-8 w-8 text-primary" />
-          ) : (
-            <User className="h-8 w-8 text-primary" />
-          )}
+          <Brain className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Profil</h1>
         </div>
 
@@ -135,55 +130,53 @@ export default function Profile() {
           </Card>
 
           {/* KI-Entwicklungspotenziale (nur in der adaptiven Version) */}
-          {isAdaptive && (
-            <Card className="md:col-span-2 border-primary/30 bg-primary/5">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-primary" />
-                  <CardTitle>KI-Entwicklungspotenziale</CardTitle>
+          <Card className="md:col-span-2 border-primary/30 bg-primary/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                <CardTitle>KI-Entwicklungspotenziale</CardTitle>
+              </div>
+              <CardDescription>
+                Personalisierte Empfehlungen für Ihre Weiterentwicklung
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Empfohlene Fokusgebiete
+                  </h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Badge variant="secondary">Frontend-Entwicklung</Badge>
+                      <span className="text-muted-foreground">Hohe Relevanz</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Badge variant="secondary">Agile Methoden</Badge>
+                      <span className="text-muted-foreground">Mittlere Relevanz</span>
+                    </li>
+                  </ul>
                 </div>
-                <CardDescription>
-                  Personalisierte Empfehlungen für Ihre Weiterentwicklung
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2">
-                      <Target className="h-4 w-4 text-primary" />
-                      Empfohlene Fokusgebiete
-                    </h4>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center gap-2">
-                        <Badge variant="secondary">Frontend-Entwicklung</Badge>
-                        <span className="text-muted-foreground">Hohe Relevanz</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Badge variant="secondary">Agile Methoden</Badge>
-                        <span className="text-muted-foreground">Mittlere Relevanz</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      Nächste Meilensteine
-                    </h4>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center gap-2">
-                        <Badge variant="secondary">10 Reflexionen</Badge>
-                        <span className="text-muted-foreground">2 verbleibend</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Badge variant="secondary">Level 4</Badge>
-                        <span className="text-muted-foreground">75% erreicht</span>
-                      </li>
-                    </ul>
-                  </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Nächste Meilensteine
+                  </h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Badge variant="secondary">10 Reflexionen</Badge>
+                      <span className="text-muted-foreground">2 verbleibend</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Badge variant="secondary">Level 4</Badge>
+                      <span className="text-muted-foreground">75% erreicht</span>
+                    </li>
+                  </ul>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
