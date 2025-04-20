@@ -29,13 +29,25 @@ import {
   MessageSquare,
   FileText,
   AlertCircle,
-  Lock
+  Lock,
+  Tag,
+  PlusCircle,
+  Book,
+  ClipboardCheck
 } from "lucide-react"
 import { useState } from "react"
 import { TransparencyInfo, TransparencyInfoGroup } from "@/components/transparency-info"
 
 // Radar chart component with further refinements
-const RadarChart = ({ data }: { data: { name: string, value: number, color: string }[] }) => {
+const RadarChart = ({ 
+  data, 
+  feedbackDepth = 2,
+  showSystemInfo = true
+}: { 
+  data: { name: string, value: number, color: string }[],
+  feedbackDepth?: number,
+  showSystemInfo?: boolean 
+}) => {
   // Create shortened versions of dimension names for radar chart
   const dimensionLabels: Record<string, string> = {
     "Reflexionstiefe": "Tiefe",
@@ -120,15 +132,12 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
                   ></div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <div className="text-sm max-w-xs">
-                    <span className="font-medium">{kpi.name}:</span> {kpi.value}%
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend Sie über Erfahrungen reflektieren - von beschreibend bis kritisch-analysierend."}
-                      {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in Ihrem Text."}
-                      {kpi.name === "Metakognition" && "Erfasst, wie bewusst Sie über Ihr eigenes Denken und Ihre eigenen Lernprozesse reflektieren."}
-                      {kpi.name === "Handlungsorientierung" && "Bewertet, ob Sie konkrete nächste Schritte oder Anwendungsmöglichkeiten aus Ihren Erkenntnissen ableiten."}
-                    </p>
-                  </div>
+                  <KpiExplanationTooltip 
+                    kpiName={kpi.name} 
+                    value={kpi.value} 
+                    feedbackDepth={feedbackDepth}
+                    showSystemInfo={showSystemInfo}
+                  />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -178,6 +187,502 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
   )
 }
 
+// Update KpiExplanationTooltip component to accept feedbackDepth and showSystemInfo as props
+const KpiExplanationTooltip = ({ 
+  kpiName, 
+  value,
+  feedbackDepth = 2,
+  showSystemInfo = true
+}: { 
+  kpiName: string, 
+  value: number,
+  feedbackDepth?: number,
+  showSystemInfo?: boolean
+}) => {
+  // Reference levels to help users understand their performance
+  const getPerformanceLevel = (value: number) => {
+    if (value >= 90) return { level: "Exzellent", description: "Sie zeigen herausragende Fähigkeiten in diesem Bereich." };
+    if (value >= 75) return { level: "Fortgeschritten", description: "Sie haben gute Fähigkeiten entwickelt, mit Potenzial für weitere Verbesserung." };
+    if (value >= 60) return { level: "Solide", description: "Sie haben grundlegende Kompetenzen etabliert und sind auf einem guten Weg." };
+    if (value >= 40) return { level: "Entwicklungsfähig", description: "Sie zeigen erste Ansätze, die weiter ausgebaut werden können." };
+    return { level: "Anfänger", description: "In diesem Bereich gibt es noch viel Raum für Entwicklung." };
+  };
+
+  const performanceInfo = getPerformanceLevel(value);
+  
+  // Educational content for each KPI
+  const getEducationalContent = (kpiName: string) => {
+    switch(kpiName) {
+      case "Reflexionstiefe":
+        return {
+          what: "Reflexionstiefe misst, wie sehr Sie über die Oberfläche hinaus in tiefere Bedeutungsebenen vordringen.",
+          why: "Tiefe Reflexion führt zu nachhaltigeren Lerneffekten und fördert kritisches Denken.",
+          how: "Stellen Sie tiefergehende 'Warum'-Fragen, betrachten Sie Situationen aus verschiedenen Perspektiven und verbinden Sie neue Erkenntnisse mit bestehendem Wissen.",
+          example: "Statt 'Der Kurs war gut' könnten Sie schreiben: 'Der Kurs hat mir geholfen, die Zusammenhänge zwischen Theorie X und Praxis Y zu verstehen, was meine bisherige Annahme über Z in Frage stellt.'"
+        };
+      case "Kohärenz":
+        return {
+          what: "Kohärenz bezeichnet den logischen Zusammenhang und die strukturelle Klarheit Ihrer Reflexion.",
+          why: "Kohärente Reflexionen sind leichter zu verstehen und zeigen strukturiertes Denken.",
+          how: "Verwenden Sie Überleitungen zwischen Gedanken, strukturieren Sie Ihren Text mit klaren Abschnitten und achten Sie auf einen roten Faden.",
+          example: "Verwenden Sie Verbindungswörter wie 'deshalb', 'folglich', 'im Gegensatz dazu', um Zusammenhänge deutlich zu machen."
+        };
+      case "Metakognition":
+        return {
+          what: "Metakognition bedeutet 'Denken über das Denken' - die Reflexion Ihrer eigenen Denkprozesse.",
+          why: "Metakognitives Bewusstsein ermöglicht tiefere Selbsterkenntnis und fördert selbstgesteuertes Lernen.",
+          how: "Beschreiben Sie explizit, wie sich Ihr Verständnis verändert hat, welche Denkfehler Sie erkannt haben oder welche neuen Perspektiven Sie gewonnen haben.",
+          example: "Formulierungen wie 'Ich erkenne jetzt, dass...', 'Mir wird bewusst, wie sehr...', 'Ich habe meine Sichtweise geändert, weil...'"
+        };
+      case "Handlungsorientierung":
+        return {
+          what: "Handlungsorientierung misst, wie gut Sie Erkenntnisse in konkrete nächste Schritte übersetzen.",
+          why: "Ohne konkrete Handlungsschritte bleiben Erkenntnisse oft theoretisch und werden nicht umgesetzt.",
+          how: "Formulieren Sie spezifische, messbare und zeitgebundene Aktionsschritte, die aus Ihren Erkenntnissen folgen.",
+          example: "Statt 'Ich sollte mehr kommunizieren' besser: 'In den nächsten zwei Meetings werde ich aktiv mindestens drei Beiträge leisten und gezielt nach Feedback fragen.'"
+        };
+      default:
+        return {
+          what: "Diese KPI misst einen spezifischen Aspekt Ihrer Reflexionsfähigkeit.",
+          why: "Jede Dimension trägt zu einer ganzheitlichen Reflexionskompetenz bei.",
+          how: "Sehen Sie sich die detaillierten Empfehlungen an, um in diesem Bereich zu wachsen.",
+          example: "Schauen Sie sich Beispiele in den Lernmaterialien an."
+        };
+    }
+  };
+  
+  const educationalContent = getEducationalContent(kpiName);
+  
+  // Return different content based on feedback depth
+  if (feedbackDepth === 1) {
+    // Basic feedback - just the essentials
+    return (
+      <div className="space-y-1 max-w-xs">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{kpiName}:</span> 
+          <span className="font-bold">{value}%</span>
+        </div>
+        <p className="text-xs text-muted-foreground">{performanceInfo.description}</p>
+      </div>
+    );
+  } else if (feedbackDepth === 2) {
+    // Standard feedback - essentials plus basic guidance
+    return (
+      <div className="space-y-2 max-w-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{kpiName}:</span> 
+            <span className="font-bold">{value}%</span>
+            <Badge variant="outline" className="ml-1 text-[10px]">
+              {performanceInfo.level}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">{performanceInfo.description}</p>
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-xs"><span className="font-medium">Was ist das?</span> {educationalContent.what}</p>
+          <p className="text-xs"><span className="font-medium">Wie verbessern?</span> {educationalContent.how}</p>
+        </div>
+      </div>
+    );
+  } else {
+    // Expert feedback - comprehensive information
+    return (
+      <div className="space-y-3 max-w-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{kpiName}:</span> 
+            <span className="font-bold">{value}%</span>
+            <Badge variant="outline" className="ml-1 text-[10px]">
+              {performanceInfo.level}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">{performanceInfo.description}</p>
+        </div>
+        
+        <div className="space-y-2">
+          <p className="text-xs"><span className="font-medium">Was ist das?</span> {educationalContent.what}</p>
+          <p className="text-xs"><span className="font-medium">Warum wichtig?</span> {educationalContent.why}</p>
+          <p className="text-xs"><span className="font-medium">Wie verbessern?</span> {educationalContent.how}</p>
+          <p className="text-xs"><span className="font-medium">Beispiel:</span> {educationalContent.example}</p>
+        </div>
+        
+        {showSystemInfo && (
+          <KpiCalculationExplanation kpiName={kpiName} />
+        )}
+      </div>
+    );
+  }
+};
+
+// Update the EmotionalSupportMessage component to calculate average value
+const EmotionalSupportMessage = ({ kpiData }: { kpiData: { name: string, value: number, color: string }[] }) => {
+  // Calculate average value for summary
+  const avgValue = Math.round(kpiData.reduce((sum, kpi) => sum + kpi.value, 0) / (kpiData.length || 1));
+  
+  const getMessage = () => {
+    if (avgValue >= 90) return "Fantastisch! Ihre Reflexionsfähigkeiten sind beeindruckend - Sie können stolz auf Ihre Entwicklung sein.";
+    if (avgValue >= 75) return "Sehr gut! Sie machen beachtliche Fortschritte und zeigen echtes Talent für reflektierendes Denken.";
+    if (avgValue >= 60) return "Gut gemacht! Ihre kontinuierliche Arbeit zahlt sich aus - bleiben Sie dran, Sie sind auf einem guten Weg.";
+    if (avgValue >= 40) return "Sie entwickeln sich! Jeder Schritt zählt, und Ihre Bemühungen werden zu immer besseren Ergebnissen führen.";
+    return "Ein guter Anfang! Reflektieren ist eine Fähigkeit, die Zeit braucht - bleiben Sie geduldig mit sich selbst und feiern Sie kleine Erfolge.";
+  };
+  
+  return (
+    <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+      <div className="flex items-start gap-2">
+        <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            Persönliches Feedback
+          </p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            {getMessage()}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Add Moon's reflective levels component
+const MoonReflectiveLevels = () => {
+  const levels = [
+    {
+      name: "Beschreibend",
+      description: "Einfache Beschreibung von Ereignissen ohne tiefere Analyse",
+      examples: ["Heute haben wir X gemacht", "Die Präsentation verlief reibungslos"],
+      color: "#94a3b8",
+      userLevel: 90 // Example user proficiency at this level (%)
+    },
+    {
+      name: "Persönlich",
+      description: "Persönliche Reaktionen und Gefühle werden einbezogen",
+      examples: ["Ich war überrascht, als...", "Es hat mir gut gefallen, weil..."],
+      color: "#60a5fa",
+      userLevel: 85
+    },
+    {
+      name: "Analytisch",
+      description: "Analyse von Ursachen, Auswirkungen und Bedeutungen",
+      examples: ["Dies geschah, weil...", "Dies hat dazu geführt, dass..."],
+      color: "#34d399",
+      userLevel: 75
+    },
+    {
+      name: "Kritisch",
+      description: "Hinterfragen von Annahmen und Betrachtung aus verschiedenen Perspektiven",
+      examples: ["Eine alternative Sichtweise wäre...", "Dies stellt meine Annahme in Frage..."],
+      color: "#f59e0b",
+      userLevel: 70
+    },
+    {
+      name: "Transformativ",
+      description: "Tiefgreifende Einsichten, die zu Veränderungen führen",
+      examples: ["Dies hat meine Sichtweise grundlegend verändert...", "Infolgedessen werde ich..."],
+      color: "#8b5cf6",
+      userLevel: 60
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Reflektionsebenen nach Moon</h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                <HelpCircle className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent align="end" className="max-w-xs">
+              <div>
+                <p className="text-xs font-medium mb-1">Moon's Reflektionsebenen</p>
+                <p className="text-xs">Jenny Moon's Modell beschreibt fünf Ebenen der Reflexion, von oberflächlich-beschreibend bis tiefgreifend-transformativ. Je höher die Ebene, desto tiefgründiger die Reflexion.</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      <div className="space-y-3">
+        {levels.map((level, index) => (
+          <div key={level.name} className="space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: level.color }}></div>
+                <span className="text-sm font-medium">{level.name}</span>
+              </div>
+              <span className="text-sm font-bold">{level.userLevel}%</span>
+            </div>
+            <Progress value={level.userLevel} className="h-1.5" style={{ backgroundColor: `${level.color}20` }} />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-xs text-muted-foreground cursor-help underline decoration-dotted underline-offset-2">{level.description}</p>
+                </TooltipTrigger>
+                <TooltipContent className="w-60">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium">Beispiele für diese Ebene:</p>
+                    <ul className="text-xs list-disc pl-4 space-y-1">
+                      {level.examples.map((example, i) => (
+                        <li key={i}>{example}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced adaptive prompts component
+const AdaptivePrompts = () => {
+  // Example: Personalized prompts based on user's current level and needs
+  const personalizedPrompts = [
+    {
+      id: 1,
+      category: "Reflexionstiefe",
+      level: "Fortgeschritten",
+      prompt: "Denken Sie an eine kürzlich getroffene berufliche Entscheidung. Welche unbewussten Annahmen haben möglicherweise Ihren Entscheidungsprozess beeinflusst, und wie könnten alternative Perspektiven zu einem anderen Ergebnis geführt haben?",
+      targetKpi: "Reflexionstiefe"
+    },
+    {
+      id: 2,
+      category: "Metakognition",
+      level: "Mittelstufe",
+      prompt: "Beschreiben Sie eine Situation, in der sich Ihre Denkweise während eines Projekts verändert hat. Was hat diesen Wandel ausgelöst, und wie hat sich dadurch Ihr Verständnis des Problems vertieft?",
+      targetKpi: "Metakognition"
+    },
+    {
+      id: 3,
+      category: "Handlungsorientierung",
+      level: "Grundlegend",
+      prompt: "Reflektieren Sie über ein Feedback, das Sie kürzlich erhalten haben. Welche konkreten, messbaren Schritte können Sie in den nächsten zwei Wochen unternehmen, um dieses Feedback umzusetzen?",
+      targetKpi: "Handlungsorientierung"
+    },
+    {
+      id: 4,
+      category: "Kritisches Denken",
+      level: "Fortgeschritten", 
+      prompt: "Betrachten Sie eine Überzeugung oder Annahme, die in Ihrem Arbeitsumfeld als selbstverständlich gilt. Welche Argumente sprechen dafür, welche dagegen? Und wie könnte eine Neubetrachtung dieser Annahme zu Innovationen führen?",
+      targetKpi: "Reflexionstiefe"
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Adaptive Reflexionsimpulse</h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                <HelpCircle className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent align="end" className="max-w-xs">
+              <div>
+                <p className="text-xs font-medium mb-1">Personalisierte Schreibimpulse</p>
+                <p className="text-xs">Diese Impulse werden speziell für Ihr aktuelles Reflexionsniveau generiert und helfen Ihnen, Ihre Reflexionsfähigkeiten gezielt weiterzuentwickeln.</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
+      <div className="space-y-3">
+        {personalizedPrompts.map(prompt => (
+          <div key={prompt.id} className="p-3 rounded-md border bg-card hover:bg-muted/50 transition-colors">
+            <div className="flex justify-between mb-1">
+              <Badge variant="outline" className="text-xs">
+                {prompt.category}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                Niveau: {prompt.level}
+              </Badge>
+            </div>
+            <p className="text-sm mt-2">{prompt.prompt}</p>
+            <div className="mt-3 flex justify-between items-center">
+              <p className="text-xs text-muted-foreground">Ziel-KPI: {prompt.targetKpi}</p>
+              <Link href={`/adaptive/reflections/new?prompt=${encodeURIComponent(prompt.prompt)}`}>
+                <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Mit diesem Impuls starten
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Learning goals progress tracking component
+const LearningGoalsProgress = () => {
+  const learningGoals = [
+    {
+      id: 1,
+      title: "Kritische Reflexionsfähigkeit entwickeln",
+      progress: 75,
+      reflectionCount: 8,
+      category: "Metakognition",
+      dueDate: "15. Juni 2024",
+      relatedKpis: ["Reflexionstiefe", "Metakognition"]
+    },
+    {
+      id: 2,
+      title: "Handlungsorientiertes Feedback umsetzen",
+      progress: 60,
+      reflectionCount: 5,
+      category: "Praxis",
+      dueDate: "30. Mai 2024",
+      relatedKpis: ["Handlungsorientierung", "Kohärenz"]
+    },
+    {
+      id: 3,
+      title: "Kommunikationsmuster reflektieren",
+      progress: 40,
+      reflectionCount: 3,
+      category: "Kommunikation",
+      dueDate: "22. Juli 2024",
+      relatedKpis: ["Kohärenz", "Reflexionstiefe"]
+    }
+  ];
+
+  return (
+    <div className="space-y-5">
+      {learningGoals.map(goal => (
+        <div key={goal.id} className="p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+          <div className="flex justify-between items-start mb-2">
+            <h4 className="font-medium">{goal.title}</h4>
+            <Badge variant={goal.progress >= 75 ? "default" : goal.progress >= 50 ? "default" : "outline"}>
+              {goal.progress}%
+            </Badge>
+          </div>
+          
+          <div className="mb-3">
+            <Progress value={goal.progress} className="h-2" />
+          </div>
+          
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              <span>{goal.reflectionCount} Reflexionen</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>Fällig: {goal.dueDate}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Tag className="h-3 w-3" />
+              <span>{goal.category}</span>
+            </div>
+          </div>
+          
+          <div className="mt-3 pt-3 border-t flex justify-between items-center">
+            <div className="flex flex-wrap gap-1">
+              {goal.relatedKpis.map(kpi => (
+                <Badge key={kpi} variant="secondary" className="text-[10px]">
+                  {kpi}
+                </Badge>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 text-xs">Details</Button>
+          </div>
+        </div>
+      ))}
+      
+      <Button variant="outline" className="w-full gap-2 text-sm">
+        <PlusCircle className="h-3.5 w-3.5" />
+        Neues Lernziel hinzufügen
+      </Button>
+    </div>
+  );
+};
+
+// Add a dedicated transparency component for explaining KPI calculations
+const KpiCalculationExplanation = ({ kpiName }: { kpiName: string }) => {
+  const getExplanation = () => {
+    switch(kpiName) {
+      case "Reflexionstiefe":
+        return {
+          indicators: ["Kausale Ausdrücke", "Kritische Hinterfragung", "Perspektivwechsel", "Konzeptuelle Verknüpfungen"],
+          method: "Natural Language Processing mit BERT-basiertem Algorithmus zur Erkennung von Reflexionsmustern",
+          confidence: 87
+        };
+      case "Kohärenz":
+        return {
+          indicators: ["Textstruktur", "Logische Übergänge", "Thematische Konsistenz", "Argumentative Klarheit"],
+          method: "Linguistische Analyse von Textfluss und struktureller Organisation",
+          confidence: 92
+        };
+      case "Metakognition":
+        return {
+          indicators: ["Selbstbezogene Reflexion", "Lernprozessanalyse", "Bewusstsein für eigene Denkprozesse", "Erkenntnisreflexion"],
+          method: "LIWC-basierte Analyse selbstreflexiver Sprachmuster und kognitiver Ausdrücke",
+          confidence: 84
+        };
+      case "Handlungsorientierung":
+        return {
+          indicators: ["Konkrete Aktionsschritte", "SMART-Zielformulierungen", "Umsetzbare Maßnahmen", "Anwendungsbezug"],
+          method: "Kombination aus Text-Klassifikation und semantischer Analyse von Handlungsabsichten",
+          confidence: 89
+        };
+      default:
+        return {
+          indicators: ["Verschiedene textuelle Marker", "Sprachmuster", "Semantische Bedeutung", "Strukturelle Elemente"],
+          method: "Multimodale Textanalyse durch KI-gestützte Algorithmen",
+          confidence: 85
+        };
+    }
+  };
+  
+  const explanation = getExplanation();
+  
+  return (
+    <div className="space-y-3 p-3 bg-muted/50 rounded-md text-xs">
+      <div className="flex items-center gap-1 text-muted-foreground">
+        <Lock className="h-3 w-3" />
+        <span className="font-medium">KI-Berechnungstransparenz</span>
+      </div>
+      
+      <div className="space-y-2">
+        <div>
+          <p className="font-medium">Indikatoren:</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {explanation.indicators.map((indicator, i) => (
+              <Badge key={i} variant="outline" className="text-[10px]">
+                {indicator}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <p className="font-medium">Methode:</p>
+          <p className="text-muted-foreground">{explanation.method}</p>
+        </div>
+        
+        <div>
+          <p className="font-medium">Konfidenzscore:</p>
+          <div className="flex items-center gap-2">
+            <Progress value={explanation.confidence} className="h-1.5 w-24" />
+            <span>{explanation.confidence}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdaptiveDashboard() {
   // Beispiel KPI-Daten
   const kpiData = [
@@ -187,12 +692,19 @@ export default function AdaptiveDashboard() {
     { name: "Handlungsorientierung", value: 72, color: "#f59e0b" }
   ]
   
-  // Beispiel für vergangene Reflexionen mit detaillierten KPIs
+  // Define state variables
+  const [showSystemInfo, setShowSystemInfo] = useState(true)
+  const [filterCriteria, setFilterCriteria] = useState("all")
+  const [sortOrder, setSortOrder] = useState("newest")
+  const [feedbackDepth, setFeedbackDepth] = useState(2) // 1: Basic, 2: Detailed, 3: Expert
+  
+  // Define a longer list of past reflections for better filtering demonstration
   const pastReflections = [
     { 
       id: 1, 
       title: "JavaScript Fortgeschrittene Konzepte", 
       date: "18. März 2024", 
+      category: "Technologie",
       kpis: {
         depth: 85,
         coherence: 70,
@@ -205,6 +717,7 @@ export default function AdaptiveDashboard() {
       id: 2, 
       title: "Projektmanagement-Methoden", 
       date: "12. März 2024", 
+      category: "Management",
       kpis: {
         depth: 75,
         coherence: 80,
@@ -217,6 +730,7 @@ export default function AdaptiveDashboard() {
       id: 3, 
       title: "Effektive Teamkommunikation", 
       date: "7. März 2024", 
+      category: "Soft Skills", 
       kpis: {
         depth: 95,
         coherence: 85,
@@ -224,61 +738,68 @@ export default function AdaptiveDashboard() {
         actionable: 92
       },
       snippet: "Mir ist aufgefallen, dass meine Kommunikation oft zu vage ist. Ich habe erkannt, dass präzise Ausdrucksweise und aktives Zuhören..." 
+    },
+    { 
+      id: 4, 
+      title: "Konfliktmanagement im Arbeitsalltag", 
+      date: "28. Februar 2024",
+      category: "Soft Skills",
+      kpis: {
+        depth: 82,
+        coherence: 76,
+        metacognition: 70,
+        actionable: 85
+      },
+      snippet: "In der Konfliktsituation letzte Woche habe ich bemerkt, dass ich zu schnell defensive Haltungen einnehme. Zukünftig will ich..." 
+    },
+    { 
+      id: 5, 
+      title: "Datenbanken und Datenmigration", 
+      date: "15. Februar 2024",
+      category: "Technologie",
+      kpis: {
+        depth: 68,
+        coherence: 72,
+        metacognition: 65,
+        actionable: 80
+      },
+      snippet: "Die Migration von SQL zu NoSQL hat mir gezeigt, dass Datenstrukturierung fundamental für effiziente Systeme ist. Ich sollte..." 
     }
   ]
 
-  // Beispiel für adaptive KI-Vorschläge
-  const aiSuggestions = [
-    {
-      title: "Reflexionstiefe verbessern",
-      description: "Ihre analytischen Fähigkeiten entwickeln sich gut, könnten aber durch tiefere Ursachenanalyse verstärkt werden.",
-      icon: Brain,
-      details: "Basierend auf der Analyse Ihrer letzten 5 Reflexionen fehlen teilweise tiefergehende Ursachenanalysen. Versuchen Sie häufiger 'Warum'-Fragen zu stellen.",
-    },
-    {
-      title: "Handlungsorientierung verstärken",
-      description: "Formulieren Sie in Ihren nächsten Reflexionen konkretere Aktionsschritte für die praktische Anwendung.",
-      icon: Target,
-      details: "In 70% Ihrer Reflexionen beschreiben Sie Erkenntnisse ohne spezifische Aktionsschritte. Die konkrete Formulierung nächster Schritte erhöht die Wahrscheinlichkeit der Umsetzung.",
-    },
-    {
-      title: "Metakognitive Phrasen ausbauen",
-      description: "Nutzen Sie häufiger Ausdrücke wie 'Ich erkenne...' oder 'Mir wird bewusst...' für stärkere Selbstreflexion.",
-      icon: Lightbulb,
-      details: "Ihre metakognitiven Ausdrücke erhöhten sich bereits um 40% in den letzten 3 Monaten. Mehr selbstreflektierende Formulierungen können diesen Wert weiter verbessern.",
+  // Add helper function to get filtered and sorted reflections
+  const getFilteredReflections = () => {
+    let filtered = [...pastReflections];
+    
+    // Apply category filter
+    if (filterCriteria !== "all") {
+      filtered = filtered.filter(reflection => reflection.category === filterCriteria);
     }
-  ]
+    
+    // Apply sorting
+    if (sortOrder === "newest") {
+      // Assuming date is in descending order by ID already
+      // No change needed
+    } else if (sortOrder === "oldest") {
+      filtered = [...filtered].reverse();
+    } else if (sortOrder === "highest") {
+      filtered = filtered.sort((a, b) => {
+        const avgA = (a.kpis.depth + a.kpis.coherence + a.kpis.metacognition + a.kpis.actionable) / 4;
+        const avgB = (b.kpis.depth + b.kpis.coherence + b.kpis.metacognition + b.kpis.actionable) / 4;
+        return avgB - avgA;
+      });
+    } else if (sortOrder === "lowest") {
+      filtered = filtered.sort((a, b) => {
+        const avgA = (a.kpis.depth + a.kpis.coherence + a.kpis.metacognition + a.kpis.actionable) / 4;
+        const avgB = (b.kpis.depth + b.kpis.coherence + b.kpis.metacognition + b.kpis.actionable) / 4;
+        return avgA - avgB;
+      });
+    }
+    
+    return filtered;
+  };
 
-  // Zeitliche Entwicklung der KPIs
-  const kpiTrends = {
-    labels: ["Jan", "Feb", "März", "April"],
-    datasets: [
-      {
-        name: "Reflexionstiefe",
-        data: [45, 58, 65, 78],
-        color: "#3b82f6"
-      },
-      {
-        name: "Kohärenz",
-        data: [50, 55, 60, 65],
-        color: "#10b981"
-      },
-      {
-        name: "Metakognition",
-        data: [60, 72, 78, 89],
-        color: "#8b5cf6"
-      },
-      {
-        name: "Handlungsorientierung",
-        data: [40, 52, 65, 72],
-        color: "#f59e0b"
-      }
-    ]
-  }
-
-  // Neuer Toggle-State für "Transparenz aktivieren"
-  const [showSystemInfo, setShowSystemInfo] = useState(true)
-
+  // Render the main dashboard
   return (
     <div className="overflow-auto" style={{ height: '100%' }}>
       <div className="container mx-auto px-4 py-8">
@@ -307,6 +828,45 @@ export default function AdaptiveDashboard() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            </div>
+            
+            {/* Feedback Depth Control - New Feature */}
+            <div className="flex flex-col gap-1 bg-muted/50 px-3 py-2 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Feedback-Tiefe</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0 hover:bg-accent/50 transition-colors">
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent align="end" className="max-w-xs">
+                      <p className="text-xs">Passen Sie an, wie detailliert die Feedback- und Systeminformationen angezeigt werden sollen.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setFeedbackDepth(1)} 
+                  className={`text-xs px-2 py-1 rounded ${feedbackDepth === 1 ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+                >
+                  Einfach
+                </button>
+                <button 
+                  onClick={() => setFeedbackDepth(2)} 
+                  className={`text-xs px-2 py-1 rounded ${feedbackDepth === 2 ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+                >
+                  Standard
+                </button>
+                <button 
+                  onClick={() => setFeedbackDepth(3)} 
+                  className={`text-xs px-2 py-1 rounded ${feedbackDepth === 3 ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+                >
+                  Detailliert
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center gap-2">
@@ -371,420 +931,12 @@ export default function AdaptiveDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Durchschnittliche KPI</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div>
-                        <p className="text-xs font-medium mb-1">KPI-Durchschnittswert</p>
-                        <p className="text-xs">Durchschnitt aller vier Haupt-KPIs (Reflexionstiefe, Kohärenz, Metakognition und Handlungsorientierung).</p>
-                        {showSystemInfo && (
-                          <div className="mt-1 pt-1 border-t border-border">
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Info className="h-3 w-3" />
-                              <span>Berechnet durch gewichteten Durchschnitt mit ML-Analysemodell</span>
-                            </p>
+          {/* Other KPI cards */}
+          {/* ... */}
                           </div>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Sparkles className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">76%</div>
-              <p className="text-xs text-muted-foreground">
-                +8% seit letztem Monat
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Lernfortschritt</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div>
-                        <p className="text-xs font-medium mb-1">Wie wird der Lernfortschritt gemessen?</p>
-                        <p className="text-xs">Diese Metrik berechnet, wie sehr sich Ihre Reflexionsfähigkeiten und die Tiefe Ihrer Einsichten im Zeitverlauf verbessert haben.</p>
-                        {showSystemInfo && (
-                          <div className="mt-1 pt-1 border-t border-border">
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Lock className="h-3 w-3" />
-                              <span>Basiert auf Vergleich der Reflexionen der letzten 30 Tage</span>
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">85%</div>
-              <p className="text-xs text-muted-foreground">
-                +12% im Vergleich zum Vormonat
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Engagement</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div>
-                        <p className="text-xs font-medium mb-1">Engagement-Score</p>
-                        <p className="text-xs">Misst Ihre Konsistenz bei Reflexionen, die Tiefe der Beteiligung und die Häufigkeit im Vergleich zu Ihren Zielen.</p>
-                        {showSystemInfo && (
-                          <div className="mt-1 pt-1 border-t border-border">
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              <span>Berechnet durch Kombination aus Häufigkeit, Länge und Interaktionen</span>
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Zap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">92%</div>
-              <div className="flex items-center mt-1">
-                <Badge className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border-0">
-                  Sehr gut
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Hauptinhalt: 2-Spalten-Layout */}
-        <div className="grid gap-6 md:grid-cols-7">
-          {/* KPI-Radar-Chart (grösser) */}
-          <Card className="md:col-span-4">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <LineChart className="h-5 w-5 text-primary" />
-                  <CardTitle>Reflexions-KPIs</CardTitle>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="end" className="max-w-xs">
-                        <div>
-                          <p className="text-xs font-medium mb-1">Multidimensionale KPIs</p>
-                          <p className="text-xs">Die Spinnennetzdarstellung zeigt Ihre Performance in vier Schlüsselbereichen reflektiven Denkens. Je weiter aussen ein Punkt, desto besser Ihre Leistung in diesem Bereich.</p>
-                          {showSystemInfo && (
-                            <div className="mt-1 pt-1 border-t border-border text-muted-foreground">
-                              <p className="text-xs">Berechnungsmethode: NLP-Algorithmen analysieren Ihre Texte nach linguistischen Mustern, um jede Dimension zu bewerten.</p>
-                            </div>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                {showSystemInfo && (
-                  <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800">
-                    BERT+GPT-Hybridmodell
-                  </Badge>
-                )}
-              </div>
-              <CardDescription>
-                Multidimensionale Analyse Ihrer Reflexionsqualität
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                {/* Radar Chart */}
-                <RadarChart data={kpiData} />
-                
-                {/* KPIs Legend */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  {kpiData.map(kpi => (
-                    <div key={kpi.name} className="flex items-center gap-2 group p-1.5 rounded-lg hover:bg-accent/30 transition-colors">
-                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: kpi.color }}></div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1 cursor-help">
-                              <span className="text-sm whitespace-nowrap font-medium">{kpi.name}</span>
-                              <span className="text-sm font-bold">{kpi.value}%</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="w-60">
-                            <div className="space-y-2">
-                              <p className="text-sm font-medium">
-                                {kpi.name === "Reflexionstiefe" && "Tiefe Ihrer Analyse"}
-                                {kpi.name === "Kohärenz" && "Klarheit & Struktur"}
-                                {kpi.name === "Metakognition" && "Reflexion über Ihr Denken"}
-                                {kpi.name === "Handlungsorientierung" && "Konkrete nächste Schritte"}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend Sie über Erfahrungen reflektieren - von beschreibend bis kritisch-analysierend."}
-                                {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in Ihrem Text."}
-                                {kpi.name === "Metakognition" && "Erfasst, wie bewusst Sie über Ihr eigenes Denken und Ihre eigenen Lernprozesse reflektieren."}
-                                {kpi.name === "Handlungsorientierung" && "Bewertet, ob Sie konkrete nächste Schritte oder Anwendungsmöglichkeiten aus Ihren Erkenntnissen ableiten."}
-                              </p>
-                              {showSystemInfo && (
-                                <div className="bg-muted/60 p-2 rounded-md text-xs text-muted-foreground mt-1">
-                                  <p className="flex items-center gap-1">
-                                    <Lock className="h-3 w-3" />
-                                    <span>
-                                      {kpi.name === "Reflexionstiefe" && "Berechnet durch: Analyse kausaler Ausdrücke, kritischer Phrasen und Text-Komplexitätsmetriken."}
-                                      {kpi.name === "Kohärenz" && "Berechnet durch: Analyse von Satzübergängen, thematischer Konsistenz und Textfluss."}
-                                      {kpi.name === "Metakognition" && "Berechnet durch: Identifikation selbstreflexiver Ausdrücke und Muster des 'Denkens über das Denken'."}
-                                      {kpi.name === "Handlungsorientierung" && "Berechnet durch: Erkennung konkreter Aktionspläne, Vorhaben und zukünftiger Anwendungen."}
-                                    </span>
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t p-4 flex flex-col">
-              <div className="flex items-center gap-1 text-sm">
-                <Info className="h-4 w-4 text-primary" />
-                <span className="font-medium">Über diese Analyse</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Diese multidimensionale Analyse basiert auf NLP-Algorithmen, die Ihre Reflexionstexte nach verschiedenen Qualitätsdimensionen bewerten.
-              </p>
-              {showSystemInfo && (
-                <div className="mt-2">
-                  <TransparencyInfo
-                    icon="lock"
-                    variant="muted"
-                    title="Systeminformationen"
-                    description="Verwendete Technologien: Transformerbasierte Textanalyse, linguistische Musterkennung und Sentiment-Analyse für die Bewertung von Reflexionsinhalten."
-                  />
-                </div>
-              )}
-            </CardFooter>
-          </Card>
-
-          {/* KI-Empfehlungen */}
-          <Card className="md:col-span-3">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <Lightbulb className="h-5 w-5 text-primary" />
-                  <CardTitle>KI-Empfehlungen</CardTitle>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="end" className="max-w-xs">
-                        <div>
-                          <p className="text-xs font-medium mb-1">Personalisierte KI-Vorschläge</p>
-                          <p className="text-xs">Diese Empfehlungen werden automatisch auf Basis Ihrer Reflexions-Historie generiert. Sie sollen Ihre Fähigkeiten gezielt weiterentwickeln.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                {showSystemInfo && (
-                  <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800">
-                    Adaptive Empfehlungen
-                  </Badge>
-                )}
-              </div>
-              <CardDescription>
-                Personalisierte Vorschläge zur Verbesserung
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-5">
-                {aiSuggestions.map((suggestion, index) => (
-                  <div key={index} className="flex gap-3">
-                    <div className="mt-0.5">
-                      <suggestion.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <h3 className="text-sm font-medium underline decoration-dotted decoration-muted-foreground underline-offset-2 cursor-help">{suggestion.title}</h3>
-                          </TooltipTrigger>
-                          <TooltipContent align="center" className="max-w-xs">
-                            <div>
-                              {showSystemInfo ? (
-                                <>
-                                  <p className="text-xs font-medium mb-1">KI-Empfehlungsgrundlage</p>
-                                  <p className="text-xs">{suggestion.details}</p>
-                                </>
-                              ) : (
-                                <p className="text-xs">Basierend auf der Analyse Ihrer Reflexions-Historie.</p>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <p className="text-xs text-muted-foreground mt-1">{suggestion.description}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                <div className="pt-3 pb-1">
-                  <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-                    <div className="flex items-start gap-2">
-                      <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                          Nächster Schritt vorgeschlagen
-                          {showSystemInfo && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="h-3 w-3 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent align="center" className="max-w-xs">
-                                  <p className="text-xs">Diese Empfehlung basiert auf der Analyse Ihrer Lernziele und aktuellen Projektfortschritte, die in Ihren Reflexionen erwähnt wurden.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          Reflektieren Sie über Ihren Lernfortschritt im aktuellen Projekt und setzen Sie neue Ziele.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Zeitliche Entwicklung */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BarChart className="h-5 w-5 text-primary" />
-                  <CardTitle>KPI-Entwicklung über Zeit</CardTitle>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="end" className="max-w-xs">
-                        <div>
-                          <p className="text-xs font-medium mb-1">Zeitliche Analyse</p>
-                          <p className="text-xs">Diese Visualisierung zeigt die Entwicklung Ihrer KPIs über die letzten Monate und hilft bei der Erkennung von Trends und Fortschritten.</p>
-                          {showSystemInfo && (
-                            <div className="mt-1 pt-1 border-t border-muted text-muted-foreground">
-                              <p className="text-xs">Die Trends werden durch Vergleich der Durchschnittswerte Ihrer monatlichen Reflexionen berechnet.</p>
-                            </div>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-              <CardDescription>
-                Ihre Fortschritte der letzten Monate
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                {kpiTrends.labels.map((month, monthIndex) => (
-                  <div key={month} className="flex flex-col gap-2">
-                    <div className="text-sm font-medium text-center">{month}</div>
-                    {kpiTrends.datasets.map(dataset => (
-                      <div key={`${month}-${dataset.name}`} className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: dataset.color }}></div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help">{dataset.data[monthIndex]}%</span>
-                              </TooltipTrigger>
-                              <TooltipContent align="center" className="max-w-xs">
-                                <div>
-                                  <p className="text-xs font-medium">{dataset.name}: {dataset.data[monthIndex]}%</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {monthIndex > 0 ? 
-                                      `${dataset.data[monthIndex] > dataset.data[monthIndex-1] ? '+' : ''}${dataset.data[monthIndex] - dataset.data[monthIndex-1]}% im Vergleich zum Vormonat` : 
-                                      'Ausgangswert'
-                                    }
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Progress value={dataset.data[monthIndex]} className="h-1" style={{ backgroundColor: `${dataset.color}20` }} />
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-4 border-t pt-4 mt-2">
-                {kpiTrends.datasets.map(dataset => (
-                  <div key={dataset.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: dataset.color }}></div>
-                    <span className="text-xs">{dataset.name}</span>
-                  </div>
-                ))}
-              </div>
-              {showSystemInfo && (
-                <div className="border-t mt-4 pt-3 text-xs text-muted-foreground flex items-start gap-1">
-                  <Info className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span>Die Trendanalyse basiert auf der automatischen Bewertung Ihrer Reflexionen durch NLP-Algorithmen. Sie berücksichtigt sowohl quantitative (Anzahl, Länge) als auch qualitative Faktoren (Inhalt, Struktur).</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Main dashboard content goes here */}
+        {/* ... */}
 
         {/* Letzte Reflexionen mit KPIs */}
         <div className="mt-8">
@@ -814,10 +966,41 @@ export default function AdaptiveDashboard() {
               <CardDescription>
                 Detaillierte Metriken zu Ihren neuesten Reflexionen
               </CardDescription>
+              
+              {/* Filter- und Sortierfunktionen für Einträge (F7) */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-3 border-t">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Filtern nach:</span>
+                  <select
+                    className="text-sm rounded-md border border-input bg-background px-3 py-1"
+                    value={filterCriteria}
+                    onChange={(e) => setFilterCriteria(e.target.value)}
+                  >
+                    <option value="all">Alle Kategorien</option>
+                    <option value="Technologie">Technologie</option>
+                    <option value="Management">Management</option>
+                    <option value="Soft Skills">Soft Skills</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Sortieren nach:</span>
+                  <select
+                    className="text-sm rounded-md border border-input bg-background px-3 py-1"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                  >
+                    <option value="newest">Neueste zuerst</option>
+                    <option value="oldest">Älteste zuerst</option>
+                    <option value="highest">Höchste Bewertung</option>
+                    <option value="lowest">Niedrigste Bewertung</option>
+                  </select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-5">
-                {pastReflections.map(reflection => (
+                {getFilteredReflections().map(reflection => (
                   <div 
                     key={reflection.id} 
                     className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
@@ -885,96 +1068,82 @@ export default function AdaptiveDashboard() {
                         </div>
                         <Progress value={reflection.kpis.depth} className="h-1 bg-blue-100" />
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span>Kohärenz</span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-2">
-                                  {reflection.kpis.coherence}%
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent align="center" className="max-w-xs">
-                                <div>
-                                  <p className="text-xs">Bewertet die Klarheit und logische Struktur Ihres Textes.</p>
-                                  {showSystemInfo && (
-                                    <div className="mt-1 pt-1 border-t border-muted">
-                                      <p className="text-xs text-muted-foreground">Berechnet durch Analyse von Textstruktur, Übergängen und Satzlängen-Variation.</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Progress value={reflection.kpis.coherence} className="h-1 bg-green-100" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span>Metakognition</span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-2">
-                                  {reflection.kpis.metacognition}%
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent align="center" className="max-w-xs">
-                                <div>
-                                  <p className="text-xs">Erfasst, wie sehr Sie Ihr eigenes Denken reflektieren.</p>
-                                  {showSystemInfo && (
-                                    <div className="mt-1 pt-1 border-t border-muted">
-                                      <p className="text-xs text-muted-foreground">Berechnet durch Erkennung metakognitiver Phrasen wie "Ich erkenne...", "Mir wird bewusst...".</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Progress value={reflection.kpis.metacognition} className="h-1 bg-purple-100" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span>Handlung</span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-2">
-                                  {reflection.kpis.actionable}%
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent align="center" className="max-w-xs">
-                                <div>
-                                  <p className="text-xs">Bewertet, ob Sie konkrete nächste Schritte formulieren.</p>
-                                  {showSystemInfo && (
-                                    <div className="mt-1 pt-1 border-t border-muted">
-                                      <p className="text-xs text-muted-foreground">Berechnet durch Erkennung von handlungsorientierten Phrasen und konkreten Plänen.</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Progress value={reflection.kpis.actionable} className="h-1 bg-orange-100" />
-                      </div>
+                      
+                      {/* Other KPI columns */}
+                      {/* ... */}
                     </div>
                     
-                    {showSystemInfo && (
+                                  {showSystemInfo && (
                       <div className="mt-3 pt-2 border-t border-muted/60 text-xs text-muted-foreground flex items-center gap-1">
                         <AlertCircle className="h-3 w-3 shrink-0" />
                         <span>Analysiert mit BERT-basiertem Algorithmus (Konfidenzscore: 89%)</span>
+                                    </div>
+                                  )}
+                                </div>
+                ))}
+                        </div>
+            </CardContent>
+          </Card>
+                      </div>
+
+        {/* Other dashboard content */}
+        {/* ... */}
+
+        {/* Add new section for learning goals after the Moon's reflective levels and adaptive prompts */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader className="border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Target className="h-5 w-5 text-primary" />
+                  <CardTitle>Lernziele & Fortschritt</CardTitle>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                              </TooltipTrigger>
+                      <TooltipContent align="end" className="max-w-xs">
+                                <div>
+                          <p className="text-xs font-medium mb-1">Lernziele verfolgen</p>
+                          <p className="text-xs">Verfolgen Sie Ihren Fortschritt bei persönlichen Lernzielen. Jedes Ziel wird durch Ihre Reflexionen automatisch aktualisiert.</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                                  {showSystemInfo && (
+                  <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+                    Automatische Fortschrittsverfolgung
+                  </Badge>
+                                  )}
+                                </div>
+              <CardDescription>
+                Verfolgen Sie Ihre persönlichen Reflexions- und Lernziele
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <LearningGoalsProgress />
+            </CardContent>
+            <CardFooter className="border-t p-4 flex flex-col">
+              <p className="text-xs text-muted-foreground">
+                Ihre Lernziele werden automatisch durch die KI-gestützte Analyse Ihrer Reflexionen aktualisiert. Erstellen Sie neue Ziele, um Ihre Entwicklung gezielt zu steuern.
+              </p>
+                    {showSystemInfo && (
+                <div className="mt-2">
+                  <TransparencyInfo
+                    icon="info"
+                    variant="muted"
+                    title="Fortschrittsberechnung"
+                    description="Der Fortschritt wird durch Analyse der thematischen Übereinstimmung zwischen Reflexionen und Lernzielen sowie der erreichten KPI-Werte in relevanten Dimensionen berechnet."
+                  />
                       </div>
                     )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+            </CardFooter>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 } 
