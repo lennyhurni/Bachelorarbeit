@@ -304,13 +304,13 @@ export default function NewAdaptiveReflection() {
       <div className="border-b bg-background">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/adaptive/dashboard">
+            <Link href="/dashboard">
               <Button variant="ghost" size="icon">
                 <Home className="h-4 w-4" />
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href="/adaptive/reflections" className="hover:text-foreground">
+              <Link href="/reflections" className="hover:text-foreground">
                 Reflexionen
               </Link>
               <ChevronRight className="h-4 w-4" />
@@ -352,8 +352,8 @@ export default function NewAdaptiveReflection() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2">
+      <div className="py-8">
+        <div className="px-6 grid gap-6 md:grid-cols-2">
           {/* Reflexionsformular */}
           <Card className="shadow-lg">
             <CardHeader className="border-b">
@@ -527,7 +527,7 @@ export default function NewAdaptiveReflection() {
               </div>
               
               <div className="flex gap-4 pt-4">
-                <Link href="/adaptive/reflections" className="flex-1">
+                <Link href="/reflections" className="flex-1">
                   <Button variant="outline" className="w-full hover:bg-accent transition-colors">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Zurück

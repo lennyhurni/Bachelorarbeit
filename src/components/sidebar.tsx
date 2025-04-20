@@ -23,27 +23,27 @@ export function Sidebar() {
   const routes = [
     {
       title: "Dashboard",
-      href: "/adaptive/dashboard",
+      href: "/dashboard",
       icon: Home
     },
     {
       title: "Reflexionen",
-      href: "/adaptive/reflections",
+      href: "/reflections",
       icon: FileText
     },
     {
       title: "Profil",
-      href: "/adaptive/profile",
+      href: "/profile",
       icon: UserCircle
     },
     {
       title: "Einstellungen",
-      href: "/adaptive/settings",
+      href: "/settings",
       icon: Settings
     },
     {
       title: "Hilfe",
-      href: "/adaptive/help",
+      href: "/help",
       icon: HelpCircle
     }
   ]

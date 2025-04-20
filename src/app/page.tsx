@@ -31,7 +31,7 @@ export default function Home() {
                 Nutzen Sie die fortschrittliche KI-Analyse, um tiefere Einsichten aus Ihren Reflexionen zu gewinnen.
               </p>
               <Button className="w-full gap-2" asChild>
-                <Link href="/adaptive/dashboard">
+                <Link href="/dashboard">
                   Dashboard öffnen <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
