@@ -65,24 +65,23 @@ const RadarChart = ({
   const maxRadiusPercentage = 42; // Maximum radius as percentage of chart size
   const pointDisplayMinRadius = 5; // Minimum radius for points to ensure visibility
   const labelDistance = 52; // Distance of labels from center
-  const centerCircleSize = 16; // Size of center circle in percentage of chart size
   
   return (
     <div className="relative w-full h-[280px] flex items-center justify-center">
-      {/* Background circles - subtle background */}
+      {/* Clean, minimalist background - inspired by screenshot */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[85%] h-[85%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
-        <div className="absolute w-[60%] h-[60%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
-        <div className="absolute w-[30%] h-[30%] rounded-full border border-dashed border-gray-200/60 dark:border-gray-700/60"></div>
+        <div className="w-[85%] h-[85%] rounded-full border border-gray-100 dark:border-gray-800/40"></div>
+        <div className="absolute w-[60%] h-[60%] rounded-full border border-gray-100 dark:border-gray-800/40"></div>
+        <div className="absolute w-[30%] h-[30%] rounded-full border border-gray-100 dark:border-gray-800/40"></div>
       </div>
       
-      {/* KPI axis lines - for better visualization */}
+      {/* KPI axis lines - subtle, minimalist */}
       {data.map((kpi, index) => {
         const angle = (Math.PI * 2 * index) / data.length;
         return (
           <div 
             key={`axis-${kpi.name}`} 
-            className="absolute h-[42%] border-r border-dashed border-gray-200/60 dark:border-gray-700/60 origin-bottom"
+            className="absolute h-[45%] border-r border-dashed border-gray-100 dark:border-gray-800/40 origin-bottom"
             style={{
               transform: `rotate(${(angle * 180) / Math.PI}deg)`
             }}
@@ -90,7 +89,7 @@ const RadarChart = ({
         );
       })}
       
-      {/* Connecting polygon between points with lower opacity fill */}
+      {/* Clean connecting polygon between points */}
       <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
         <polygon 
           points={data.map((kpi, index) => {
@@ -102,15 +101,15 @@ const RadarChart = ({
             const y = 50 + Math.sin(angle) * radiusPercentage;
             return `${x},${y}`;
           }).join(' ')}
-          fill="rgba(59, 130, 246, 0.15)"
+          fill="rgba(59, 130, 246, 0.1)"
           stroke="#3b82f6"
-          strokeWidth="1.5"
+          strokeWidth="1"
           strokeDasharray="0"
-          strokeOpacity="0.6"
+          strokeOpacity="0.4"
         />
       </svg>
       
-      {/* KPI points with enhanced hover effect - drawn on top of polygon and center circle */}
+      {/* KPI points inspired by screenshot - prominent colored dots */}
       {data.map((kpi, index) => {
         const angle = (Math.PI * 2 * index) / data.length;
         // Calculate radius based on value but ensure minimum display size
@@ -130,7 +129,7 @@ const RadarChart = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div 
-                    className="w-3 h-3 rounded-full cursor-help transition-all duration-200 hover:scale-150 hover:ring-2 ring-offset-2 ring-offset-background ring-primary/30 border border-white dark:border-gray-800" 
+                    className="w-3.5 h-3.5 rounded-full cursor-help transition-all duration-200 hover:scale-150 hover:ring-2 ring-offset-2 ring-offset-background ring-primary/30" 
                     style={{ backgroundColor: kpi.color }}
                   ></div>
                 </TooltipTrigger>
@@ -148,18 +147,16 @@ const RadarChart = ({
         )
       })}
       
-      {/* Improved label positioning with better spacing - moved further outside chart area */}
+      {/* Clean, badge-style labels similar to screenshot */}
       {data.map((kpi, index) => {
         const angle = (Math.PI * 2 * index) / data.length;
-        // Fixed position outside the data points, further than before
         const x = Math.cos(angle) * labelDistance;
         const y = Math.sin(angle) * labelDistance;
         
-        // Enhanced label with badge-like style for better readability
         return (
           <div 
             key={`label-${kpi.name}`} 
-            className="absolute py-0.5 px-1.5 rounded-md bg-background/90 backdrop-blur-sm text-xs font-medium border border-border/30 shadow-sm" 
+            className="absolute py-1 px-2 rounded-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-xs font-medium border border-gray-100 dark:border-gray-700 shadow-sm" 
             style={{
               top: `calc(50% - ${y}%)`,
               left: `calc(50% + ${x}%)`,
@@ -167,19 +164,31 @@ const RadarChart = ({
               zIndex: 2 // Ensure labels are above the polygon
             }}
           >
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: kpi.color }}></div>
-              <span>{dimensionLabels[kpi.name] || kpi.name}</span>
-            </div>
+            {kpi.name === "Kohärenz" ? (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+                <span className="font-medium">Kohärenz</span>
+              </div>
+            ) : kpi.name === "Handlungsorientierung" ? (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+                <span className="font-medium">Handlung</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+                <span className="font-medium">{dimensionLabels[kpi.name] || kpi.name}</span>
+              </div>
+            )}
           </div>
         )
       })}
       
-      {/* Central KPI summary - displayed on top of grid but below points */}
-      <div className="absolute flex flex-col items-center justify-center rounded-full bg-muted/40 backdrop-blur-sm border border-border/20 w-16 h-16 shadow-sm" style={{ zIndex: 2 }}>
+      {/* Central KPI summary - cleaner, more prominent like in the screenshot */}
+      <div className="absolute flex flex-col items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 w-20 h-20 shadow-sm" style={{ zIndex: 2 }}>
         {data.some(kpi => kpi.value > 0) ? (
           <>
-            <span className="text-lg font-bold">{avgValue}%</span>
+            <span className="text-2xl font-bold">{avgValue}%</span>
             <span className="text-[10px] text-muted-foreground leading-none">Gesamt</span>
           </>
         ) : (
@@ -918,7 +927,11 @@ export default function AdaptiveDashboard() {
               <Brain className="h-5 w-5 text-primary" />
               <h3 className="font-medium">Feedback-Tiefe</h3>
             </div>
-            <p className="text-sm text-muted-foreground">Wählen Sie die gewünschte Detailstufe für Ihre Analysen</p>
+            <p className="text-sm text-muted-foreground">
+              {feedbackDepth === 1 ? 'Optimiert für Reflexionseinsteiger und klare Übersicht' : 
+               feedbackDepth === 2 ? 'Ausgewogene Detailtiefe für geübte Nutzer' : 
+               'Umfangreiche Analysen für Fortgeschrittene'}
+            </p>
           </div>
           
           <div className="flex flex-wrap gap-2">
@@ -1047,7 +1060,9 @@ export default function AdaptiveDashboard() {
           }`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Durchschnittliche Tiefe</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {feedbackDepth === 1 ? 'Gesamtfortschritt' : 'Durchschnittliche Tiefe'}
+                </CardTitle>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1056,7 +1071,11 @@ export default function AdaptiveDashboard() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p className="text-xs">Die durchschnittliche Reflexionstiefe Ihrer gesamten Einträge.</p>
+                      <p className="text-xs">
+                        {feedbackDepth === 1 
+                          ? 'Ihr Gesamtfortschritt bei der Entwicklung Ihrer Reflexionskompetenz.' 
+                          : 'Die durchschnittliche Reflexionstiefe Ihrer gesamten Einträge.'}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -1068,134 +1087,295 @@ export default function AdaptiveDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">68%</div>
               <Progress value={68} className="h-1.5 mt-2 bg-muted" style={{ '--progress-foreground': '#10b981' } as React.CSSProperties} />
+              {feedbackDepth >= 2 && (
+                <p className="text-xs text-muted-foreground mt-1">Basierend auf {feedbackDepth === 3 ? 'Reflexionstiefe, Kohärenz und Metakognition' : 'allen Reflexionsmetriken'}</p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className={`border-l-4 border-l-amber-500 ${
-            feedbackDepth === 3 ? 'shadow-lg' : 
-            feedbackDepth === 2 ? 'shadow-md' : 
-            'shadow-sm'
-          }`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Lernbereich</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">Ihr aktivster Lernbereich basierend auf Ihren Reflexionen.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded-full">
-                <Target className="h-4 w-4 text-amber-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">Technologie</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                8 Reflexionen in diesem Bereich
-              </p>
-            </CardContent>
-          </Card>
+          {/* Only show KPI cards for Lernbereich in Standard and Detailed */}
+          {feedbackDepth >= 2 ? (
+            <Card className={`border-l-4 border-l-amber-500 ${
+              feedbackDepth === 3 ? 'shadow-lg' : 
+              feedbackDepth === 2 ? 'shadow-md' : 
+              'shadow-sm'
+            }`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-1">
+                  <CardTitle className="text-sm font-medium">Lernbereich</CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">Ihr aktivster Lernbereich basierend auf Ihren Reflexionen.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded-full">
+                  <Target className="h-4 w-4 text-amber-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">Technologie</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  8 Reflexionen in diesem Bereich
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            // For Simple view, show a clear, more basic KPI
+            <Card className={`border-l-4 border-l-amber-500 shadow-sm`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-1">
+                  <CardTitle className="text-sm font-medium">Aktivität</CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">Ihre Reflexions-Aktivität im Vergleich zum Vormonat.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded-full">
+                  <Clock className="h-4 w-4 text-amber-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">Regelmäßig</div>
+                <div className="flex items-center gap-1 mt-2">
+                  <Progress value={80} className="h-1.5 bg-muted" style={{ '--progress-foreground': '#f59e0b' } as React.CSSProperties} />
+                  <span className="text-xs font-medium">80%</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className={`border-l-4 border-l-purple-500 ${
-            feedbackDepth === 3 ? 'shadow-lg' : 
-            feedbackDepth === 2 ? 'shadow-md' : 
-            'shadow-sm'
-          }`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-1">
-                <CardTitle className="text-sm font-medium">Fortschritt</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">Ihr Fortschritt in Richtung Ihrer Lernziele.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-full">
-                <Star className="h-4 w-4 text-purple-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">73%</div>
-              <Progress value={73} className="h-1.5 mt-2 bg-muted" style={{ '--progress-foreground': '#8b5cf6' } as React.CSSProperties} />
-            </CardContent>
-          </Card>
+          {/* Conditional card based on feedback depth */}
+          {feedbackDepth >= 2 ? (
+            <Card className={`border-l-4 border-l-purple-500 ${
+              feedbackDepth === 3 ? 'shadow-lg' : 
+              feedbackDepth === 2 ? 'shadow-md' : 
+              'shadow-sm'
+            }`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-1">
+                  <CardTitle className="text-sm font-medium">Fortschritt</CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">{feedbackDepth === 3 ? 'Detaillierter Fortschritt in Richtung Ihrer Lernziele mit präzisen Metriken.' : 'Ihr Fortschritt in Richtung Ihrer Lernziele.'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-full">
+                  <Star className="h-4 w-4 text-purple-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">73%</div>
+                <Progress value={73} className="h-1.5 mt-2 bg-muted" style={{ '--progress-foreground': '#8b5cf6' } as React.CSSProperties} />
+                {feedbackDepth === 3 && (
+                  <p className="text-xs text-muted-foreground mt-1">+12% gegenüber letztem Monat</p>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            // For Simple view, show a more approachable metric
+            <Card className={`border-l-4 border-l-purple-500 shadow-sm`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-1">
+                  <CardTitle className="text-sm font-medium">Nächste Schritte</CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">Einfache Schritte zur Verbesserung Ihrer Reflexionen.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-full">
+                  <CheckCircle className="h-4 w-4 text-purple-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm font-medium">Regelmäßig reflektieren</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Versuchen Sie, mindestens 1x pro Woche eine neue Reflexion zu erstellen
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* Main dashboard content goes here */}
-      {/* KPI-Übersicht – RadarChart */}
+      {/* KPI-Übersicht – RadarChart - CONDITIONAL BASED ON FEEDBACK DEPTH */}
       <div className="container px-6 mb-8">
-        <Card className={`overflow-hidden border ${
-          feedbackDepth === 3 ? 'shadow-lg' : 
-          feedbackDepth === 2 ? 'shadow-md' : 
-          'shadow-sm'
-        }`}>
-          <CardHeader className={`border-b ${
-            feedbackDepth === 1 ? 'bg-blue-50/50' : 
-            feedbackDepth === 2 ? 'bg-muted/40' : 
-            'bg-purple-50/50'
+        {feedbackDepth === 1 ? (
+          /* For Simple view - Simplified bar chart representation instead of radar */
+          <Card className="overflow-hidden border shadow-sm">
+            <CardHeader className="border-b bg-blue-50/50">
+              <div className="flex items-center gap-2">
+                <BarChart className="h-5 w-5 text-primary" />
+                <CardTitle>Reflexions-Übersicht</CardTitle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">Eine einfache Übersicht Ihrer Reflexionsmetriken.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <CardDescription>Hauptkennzahlen auf einen Blick</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 bg-gradient-to-b from-blue-50/30 to-white">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="font-medium">Reflexionstiefe</span>
+                    </div>
+                    <span className="font-bold">72%</span>
+                  </div>
+                  <Progress value={72} className="h-2" style={{ '--progress-foreground': '#3b82f6' } as React.CSSProperties} />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="font-medium">Struktur</span>
+                    </div>
+                    <span className="font-bold">84%</span>
+                  </div>
+                  <Progress value={84} className="h-2" style={{ '--progress-foreground': '#10b981' } as React.CSSProperties} />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                      <span className="font-medium">Praxisbezug</span>
+                    </div>
+                    <span className="font-bold">68%</span>
+                  </div>
+                  <Progress value={68} className="h-2" style={{ '--progress-foreground': '#f59e0b' } as React.CSSProperties} />
+                </div>
+                
+                <div className="mt-6 w-full bg-card rounded-lg p-4 border">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        Persönliches Feedback
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        Gut gemacht! Ihre kontinuierliche Arbeit zahlt sich aus - bleiben Sie dran, Sie sind auf einem guten Weg.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          // For Standard and Detailed view - use the radar chart
+          <Card className={`overflow-hidden border ${
+            feedbackDepth === 3 ? 'shadow-lg' : 'shadow-md'
           }`}>
-            <div className="flex items-center gap-2">
-              <BarChart className="h-5 w-5 text-primary" />
-              <CardTitle>
-                {feedbackDepth === 1 ? 'KPI-Übersicht (Einfach)' : 
-                 feedbackDepth === 2 ? 'KPI-Übersicht' : 
-                 'KPI-Übersicht (Detailliert)'}
-              </CardTitle>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      {feedbackDepth === 1 ? 'Einfache Visualisierung Ihrer KPIs.' : 
-                       feedbackDepth === 2 ? 'Interaktive Visualisierung Ihrer Schlüssel-KPIs. Die Darstellungs-/Erklärungs-tiefe passt sich der gewählten Feedback-Tiefe an.' : 
-                       'Detaillierte und umfassende Visualisierung aller KPIs mit tiefgehenden Erklärungen.'}
+            <CardHeader className={`border-b ${
+              feedbackDepth === 2 ? 'bg-background' : 'bg-background'
+            }`}>
+              <div className="flex items-center gap-2">
+                <BarChart className="h-5 w-5 text-primary" />
+                <CardTitle>
+                  KPI-Übersicht
+                </CardTitle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        {feedbackDepth === 2 ? 
+                          'Interaktive Visualisierung Ihrer Schlüssel-KPIs. Die Darstellungs-/Erklärungs-tiefe passt sich der gewählten Feedback-Tiefe an.' : 
+                          'Detaillierte und umfassende Visualisierung aller KPIs mit tiefgehenden Erklärungen.'}
+                      </p>
+                      {feedbackDepth === 3 && showSystemInfo && (
+                        <div className="mt-2 pt-2 border-t text-xs">
+                          <p className="font-medium">Berechnungsmethodik:</p>
+                          <p className="text-muted-foreground">KI-gestützte NLP-Analyse mit gewichteten Metriken nach Jung & Wise (2020)</p>
+                        </div>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <CardDescription>
+                Überblick über Reflexionstiefe, Kohärenz, Metakognition & Handlungsorientierung
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-8 flex flex-col items-center bg-white">
+              <div className="max-w-lg w-full">
+                <RadarChart 
+                  data={kpiData}
+                  feedbackDepth={feedbackDepth}
+                  showSystemInfo={showSystemInfo}
+                />
+              </div>
+              
+              {/* Motivating feedback card - cleaner design */}
+              <div className="mt-8 mb-2 w-full max-w-lg bg-blue-50 dark:bg-blue-950/10 rounded-lg p-5 border border-blue-100 dark:border-blue-900/20">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-base font-medium text-blue-700 dark:text-blue-300">
+                      Persönliches Feedback
                     </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <CardDescription>
-              {feedbackDepth === 1 ? 'Hauptkennzahlen auf einen Blick' : 
-               feedbackDepth === 2 ? 'Überblick über Reflexionstiefe, Kohärenz, Metakognition & Handlungsorientierung' : 
-               'Umfassende Analyse aller Reflexionsmetriken und deren Zusammenhänge'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className={`pt-6 flex flex-col items-center ${
-            feedbackDepth === 1 ? 'bg-gradient-to-b from-blue-50/30 to-white' : 
-            feedbackDepth === 2 ? 'bg-gradient-to-b from-background to-muted/20' : 
-            'bg-gradient-to-b from-purple-50/30 to-white'
-          }`}>
-            <RadarChart 
-              data={kpiData}
-              feedbackDepth={feedbackDepth}
-              showSystemInfo={showSystemInfo}
-            />
-            {/* Kurze motivierende Rückmeldung */}
-            <div className="mt-6 w-full md:w-2/3 bg-card rounded-lg p-4 border">
-              <EmotionalSupportMessage kpiData={kpiData} />
-            </div>
-          </CardContent>
-        </Card>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                      Gut gemacht! Ihre kontinuierliche Arbeit zahlt sich aus - bleiben Sie dran, Sie sind auf einem guten Weg.
+                    </p>
+                    {feedbackDepth === 3 && (
+                      <div className="mt-3 pt-3 border-t border-blue-200/30 text-xs text-blue-600/70 dark:text-blue-400/70">
+                        <p>Diese Rückmeldung basiert auf der Analyse Ihrer letzten 15 Reflexionen, mit besonderem Fokus auf die neuesten 5 Einträge.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* After RadarChart content */}
@@ -1209,6 +1389,9 @@ export default function AdaptiveDashboard() {
             <Badge variant="outline" className="text-sm py-2 px-4 bg-blue-50">
               Einfache Ansicht aktiv - Für mehr Details wechseln Sie zur Standard oder Detaillierten Ansicht
             </Badge>
+            <div className="mt-4 text-sm text-muted-foreground max-w-lg mx-auto">
+              <p>Die einfache Ansicht bietet Ihnen eine klare Übersicht mit reduzierter Informationsmenge, optimal für den Einstieg in die Reflexionsarbeit.</p>
+            </div>
           </div>
         </>
       ) : (
@@ -1225,6 +1408,12 @@ export default function AdaptiveDashboard() {
               {showMoonLevels ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               <span>Moon's Reflektionsmodell {showMoonLevels ? 'ausblenden' : 'einblenden'}</span>
             </Button>
+            {feedbackDepth === 3 && (
+              <div className="ml-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5" />
+                <span>Nach Moon (2006): Mehrere Reflexionsebenen von beschreibend bis transformativ</span>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -1241,7 +1430,7 @@ export default function AdaptiveDashboard() {
               <div className="flex items-center gap-1">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <CardTitle>
-                  {feedbackDepth === 3 ? 'Erweiterte Adaptive Reflexionsimpulse' : 
+                  {feedbackDepth === 3 ? 'Personalisierte adaptive Reflexionsimpulse' : 
                    feedbackDepth === 2 ? 'Adaptive Reflexionsimpulse' :
                    'Einfache Reflexionsimpulse'}
                 </CardTitle>
@@ -1260,6 +1449,11 @@ export default function AdaptiveDashboard() {
                            feedbackDepth === 2 ? 'Angepasst an Ihre Reflexionsfähigkeiten' :
                            'Grundlegende Impulse für Ihre Reflexionen'}
                         </p>
+                        {feedbackDepth === 3 && showSystemInfo && (
+                          <div className="mt-2 pt-2 border-t">
+                            <p className="text-xs">Basierend auf Kumar et al. (2024): KI-gestützte adaptive Schreibimpulse zur Steigerung der Reflexionsqualität</p>
+                          </div>
+                        )}
                       </div>
                     </TooltipContent>
                   </Tooltip>
@@ -1267,9 +1461,9 @@ export default function AdaptiveDashboard() {
               </div>
             </div>
             <CardDescription>
-              {feedbackDepth === 3 ? 'Maßgeschneiderte Reflexionsanregungen mit tiefgehenden Hintergrundinformationen' : 
+              {feedbackDepth === 3 ? 'Maßgeschneiderte Reflexionsanregungen auf Basis Ihrer bisherigen Reflexionen' : 
                feedbackDepth === 2 ? 'Reflexionsanregungen angepasst an Ihr aktuelles Niveau' :
-               'Einfache Anregungen für Ihre Reflexionen'}
+               'Allgemeine Anregungen für Ihre Reflexionen'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
