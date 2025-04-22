@@ -1,8 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reflexions-Dashboard
+
+A modern, adaptive dashboard for analyzing and improving reflective writing, built with Next.js and TypeScript.
+This project implements research-backed design principles for feedback, transparency, and adaptive user experience.
+
+---
+
+## Features
+
+- **Adaptive Dashboard:** Three feedback levels (Einfach, Standard, Detailliert) for different user needs and experience levels.
+- **KPI Visualization:** Clean, interactive KPI overview with radar and bar charts.
+- **Personalized Feedback:** AI-driven, context-aware feedback and reflection prompts.
+- **Transparency:** System info and methodology explanations for advanced users.
+- **Responsive UI:** Modern, accessible design with mobile support.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+### Development
 
 ```bash
 npm run dev
@@ -14,23 +46,37 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+- Edit pages in `src/app/`
+- Main dashboard: `src/app/dashboard/page.tsx`
+- Settings: `src/app/settings/page.tsx`
+- Reflections: `src/app/reflections/`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+webapp/
+├── src/
+│   ├── app/
+│   │   ├── dashboard/
+│   │   ├── reflections/
+│   │   ├── settings/
+│   │   └── ...
+│   └── components/
+├── public/
+├── package.json
+└── README.md
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Design Principles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+TDB
