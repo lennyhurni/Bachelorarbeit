@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClientBrowser } from '@/utils/supabase/client'
