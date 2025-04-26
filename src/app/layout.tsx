@@ -18,9 +18,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Check if user is authenticated
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  // Check if user is authenticated - safely handle during build
+  let session = null;
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch (error) {
+    console.warn('Failed to get session, this may be expected during build:', error);
+  }
   
   // Get the current path to determine if it's a public route
   // These should match with the public paths in middleware.ts
