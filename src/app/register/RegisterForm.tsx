@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { createClientBrowser as createClient } from '@/utils/supabase/client'
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('')
@@ -13,18 +13,17 @@ export default function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   // Check if user is already logged in
   useEffect(() => {
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await createClient().auth.getSession()
       if (session) {
         router.push('/dashboard')
       }
     }
     checkSession()
-  }, [router, supabase.auth])
+  }, [router, createClient().auth])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,7 +45,7 @@ export default function RegisterForm() {
 
     try {
       // Sign up the user
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await createClient().auth.signUp({
         email,
         password,
         options: {

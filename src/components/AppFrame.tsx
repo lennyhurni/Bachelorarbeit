@@ -19,9 +19,10 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClientBrowser()
 
   useEffect(() => {
+    const supabase = createClientBrowser()
+    
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession()
@@ -74,7 +75,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase.auth, router])
+  }, [router])
 
   // Show simple loading indicator while checking session
   if (loading) {

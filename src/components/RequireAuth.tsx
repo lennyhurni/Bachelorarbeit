@@ -1,14 +1,17 @@
+"use client"
+
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { redirect, useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/use-toast'
+import { createClientBrowser as createClient } from '@/utils/supabase/client'
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
-
+  
   useEffect(() => {
     const checkAuth = async () => {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {
@@ -22,7 +25,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     }
 
     checkAuth()
-  }, [router, supabase.auth])
+  }, [router])
 
   // Zeige einen Ladeindikator während die Authentifizierung überprüft wird
   if (isLoading) {
