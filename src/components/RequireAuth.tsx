@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { redirect, useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
-import { createClientBrowser as createClient } from '@/utils/supabase/client'
+import { createClientBrowser } from '@/utils/supabase/client'
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -11,7 +11,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient()
+      const supabase = createClientBrowser()
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {

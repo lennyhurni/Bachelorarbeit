@@ -21,6 +21,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Set placeholder environment variables for build time only
+# These will be overridden by actual values at runtime
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder-for-build.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-for-build-only
+
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -50,5 +55,10 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+
+# Clear build-time placeholder environment variables
+# Real values should be provided at runtime via container environment
+ENV NEXT_PUBLIC_SUPABASE_URL=""
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 
 CMD ["node", "server.js"] 

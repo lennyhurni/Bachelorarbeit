@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientBrowser as createClient } from '@/utils/supabase/client'
+import { createClientBrowser } from '@/utils/supabase/client'
 
 type UserProfile = {
   id: string
@@ -18,7 +18,7 @@ export default function ProfileForm() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createClientBrowser()
 
   useEffect(() => {
     async function loadProfile() {

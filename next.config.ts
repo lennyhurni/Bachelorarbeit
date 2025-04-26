@@ -5,13 +5,17 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Conditionally skip static generation for pages that need dynamic Supabase data
-  // when environment variables are not available during build
+  // Set environment variables for build time to prevent errors
+  env: {
+    // Only set these placeholder values if they're not already defined
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-for-build.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-for-build',
+  },
+  // Disable static generation completely for builds
+  // This ensures all pages use Server-Side Rendering or Client-Side Rendering
   experimental: {
-    // This only affects pages using getStaticProps, not App Router pages
+    // Skip trailing slash redirect for cleaner URLs
     skipTrailingSlashRedirect: true,
-    // If environment variables aren't available, we should avoid prerendering
-    ppr: process.env.NEXT_PUBLIC_SUPABASE_URL ? false : true,
   },
 }
 

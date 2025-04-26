@@ -167,159 +167,26 @@ export default function DashboardClient() {
   const goalStats = calculateGoalStats()
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-      </div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+      <p className="mb-4">Willkommen in deinem Dashboard</p>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Begrüßungskarte */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Willkommen zurück</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-lg font-medium">{user?.full_name || user?.email}</p>
-              <p className="text-sm text-gray-500">
-                {user?.email}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Dashboard content goes here */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-2">Meine Projekte</h2>
+          <p>Du hast noch keine Projekte.</p>
+        </div>
         
-        {/* KPI-Übersicht */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-md font-medium">Reflexions-Qualität</CardTitle>
-            <LineChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {reflections.length > 0 ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Tiefe</span>
-                    <span className="font-medium">{avgKPIs.depth}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div
-                      className="h-1.5 rounded-full bg-primary"
-                      style={{ width: `${avgKPIs.depth}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Kohärenz</span>
-                    <span className="font-medium">{avgKPIs.coherence}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div
-                      className="h-1.5 rounded-full bg-blue-500"
-                      style={{ width: `${avgKPIs.coherence}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Metakognition</span>
-                    <span className="font-medium">{avgKPIs.metacognition}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div
-                      className="h-1.5 rounded-full bg-green-500"
-                      style={{ width: `${avgKPIs.metacognition}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Handlungsorientierung</span>
-                    <span className="font-medium">{avgKPIs.actionable}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div
-                      className="h-1.5 rounded-full bg-amber-500"
-                      style={{ width: `${avgKPIs.actionable}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                <p>Noch keine Reflexionen vorhanden.</p>
-                <p>Erstelle deine erste Reflexion, um Statistiken zu sehen.</p>
-              </div>
-            )}
-            <Button 
-              className="mt-4 w-full"
-              onClick={() => router.push('/reflections/new')}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Neue Reflexion
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-2">Aktivitäten</h2>
+          <p>Keine kürzlichen Aktivitäten.</p>
+        </div>
         
-        {/* Lernziel-Übersicht */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-md font-medium">Lernziele</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {learningGoals.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm">
-                    <p className="font-medium">{goalStats.inProgress} aktive Ziele</p>
-                    <p className="text-muted-foreground">Ø {goalStats.avgProgress}% Fortschritt</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-medium">
-                      {goalStats.completed}
-                    </div>
-                    <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
-                      {goalStats.inProgress}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3 mt-4">
-                  {learningGoals.slice(0, 3).map(goal => (
-                    <div key={goal.id} className="space-y-1">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium truncate" style={{maxWidth: "70%"}}>{goal.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(goal.target_date).toLocaleDateString('de-DE')}
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-secondary">
-                        <div
-                          className="h-1.5 rounded-full bg-blue-500"
-                          style={{ width: `${goal.progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                <p>Noch keine Lernziele definiert.</p>
-                <p>Setze dir Ziele, um deinen Lernfortschritt zu verfolgen.</p>
-              </div>
-            )}
-            <Button 
-              className="mt-4 w-full"
-              onClick={() => router.push('/goals/new')}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Neues Lernziel
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-2">Statistiken</h2>
+          <p>Keine Daten verfügbar.</p>
+        </div>
       </div>
     </div>
   )
