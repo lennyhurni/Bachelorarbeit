@@ -11,8 +11,32 @@ export function createClient() {
     return {
       auth: {
         getSession: () => Promise.resolve({ data: { session: null } }),
-        // Add other methods needed during build as needed
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signOut: () => Promise.resolve({ error: null }),
+        signInWithPassword: () => Promise.resolve({ data: { session: null }, error: null }),
+        updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signUp: () => Promise.resolve({ data: { user: null }, error: null }),
+        onAuthStateChange: () => ({ 
+          data: { subscription: { unsubscribe: () => {} } }, 
+        }),
       },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: null })
+          }),
+          order: () => ({
+            limit: () => Promise.resolve({ data: [], error: null })
+          }),
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: null, error: null })
+        }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        delete: () => ({
+          eq: () => Promise.resolve({ data: null, error: null })
+        }),
+      }),
       // Add other methods needed during build as needed
     } as any
   }
