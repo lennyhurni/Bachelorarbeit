@@ -54,7 +54,7 @@ const MoonReflectionLevels = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="rounded-lg border p-4 bg-amber-50 dark:bg-amber-950/30">
         <div className="flex items-start gap-3">
           <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2 mt-1">
@@ -70,8 +70,8 @@ const MoonReflectionLevels = () => {
             </div>
           </div>
         </div>
-      </div>
-      
+        </div>
+
       <div className="rounded-lg border p-4 bg-emerald-50 dark:bg-emerald-950/30">
         <div className="flex items-start gap-3">
           <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 p-2 mt-1">
@@ -152,58 +152,58 @@ export default function HelpPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
-      {/* Main Content */}
+          {/* Main Content */}
       <div className="px-6">
-        <Tabs defaultValue="start" className="space-y-4">
+          <Tabs defaultValue="start" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="start" className="gap-2">
-              <Compass className="h-4 w-4" />
+              <TabsTrigger value="start" className="gap-2">
+                <Compass className="h-4 w-4" />
               <span className="hidden sm:inline">Erste Schritte</span>
               <span className="inline sm:hidden">Start</span>
-            </TabsTrigger>
-            <TabsTrigger value="faq" className="gap-2">
-              <HelpCircle className="h-4 w-4" />
-              <span>FAQ</span>
-            </TabsTrigger>
-            <TabsTrigger value="process" className="gap-2">
-              <Layers className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="faq" className="gap-2">
+                <HelpCircle className="h-4 w-4" />
+                <span>FAQ</span>
+              </TabsTrigger>
+              <TabsTrigger value="process" className="gap-2">
+                <Layers className="h-4 w-4" />
               <span className="hidden sm:inline">Reflexionsprozess</span>
               <span className="inline sm:hidden">Prozess</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="gap-2">
-              <Brain className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="gap-2">
+                <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">KI-Unterstützung</span>
               <span className="inline sm:hidden">KI</span>
-            </TabsTrigger>
-          </TabsList>
+              </TabsTrigger>
+            </TabsList>
 
           <ScrollArea className="h-[700px] rounded-md border">
             <div className="p-6">
-              <TabsContent value="start" className="mt-0 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Compass className="h-6 w-6 text-primary" />
-                      <CardTitle>Erste Schritte mit Reflectify</CardTitle>
-                    </div>
-                    <CardDescription>
-                      So starten Sie optimal mit der App
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
+                  <TabsContent value="start" className="mt-0 space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Compass className="h-6 w-6 text-primary" />
+                          <CardTitle>Erste Schritte mit Reflectify</CardTitle>
+                        </div>
+                        <CardDescription>
+                          So starten Sie optimal mit der App
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
                     <div className="grid gap-6 sm:grid-cols-2">
                       <div className="flex flex-col space-y-4 rounded-lg border p-6">
                         <div className="rounded-full bg-primary/10 p-3 self-start">
-                          <PenTool className="h-6 w-6 text-primary" />
-                        </div>
+                              <PenTool className="h-6 w-6 text-primary" />
+                            </div>
                         <div>
-                          <h3 className="text-lg font-medium">1. Erste Reflexion</h3>
+                            <h3 className="text-lg font-medium">1. Erste Reflexion</h3>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Erstellen Sie Ihre erste Reflexion über eine aktuelle Lernerfahrung.
+                              Erstellen Sie Ihre erste Reflexion über eine aktuelle Lernerfahrung.
                             Sie werden durch den strukturierten Prozess geführt.
-                          </p>
+                            </p>
                           <Button variant="link" size="sm" asChild className="px-0 mt-2">
                             <Link href="/reflections/new" className="gap-1">
                               <span>Neue Reflexion erstellen</span>
@@ -211,13 +211,13 @@ export default function HelpPage() {
                             </Link>
                           </Button>
                         </div>
-                      </div>
+                          </div>
                       <div className="flex flex-col space-y-4 rounded-lg border p-6">
                         <div className="rounded-full bg-primary/10 p-3 self-start">
-                          <Settings className="h-6 w-6 text-primary" />
-                        </div>
+                              <Settings className="h-6 w-6 text-primary" />
+                            </div>
                         <div>
-                          <h3 className="text-lg font-medium">2. Personalisierung</h3>
+                            <h3 className="text-lg font-medium">2. Personalisierung</h3>
                           <p className="text-sm text-muted-foreground mt-2">
                             Passen Sie die App an Ihre Bedürfnisse an, wie die Feedback-Tiefe
                             und andere Präferenzen in den Einstellungen.
@@ -229,13 +229,13 @@ export default function HelpPage() {
                             </Link>
                           </Button>
                         </div>
-                      </div>
+                          </div>
                       <div className="flex flex-col space-y-4 rounded-lg border p-6">
                         <div className="rounded-full bg-primary/10 p-3 self-start">
-                          <Calendar className="h-6 w-6 text-primary" />
-                        </div>
+                              <Calendar className="h-6 w-6 text-primary" />
+                            </div>
                         <div>
-                          <h3 className="text-lg font-medium">3. Routine entwickeln</h3>
+                            <h3 className="text-lg font-medium">3. Routine entwickeln</h3>
                           <p className="text-sm text-muted-foreground mt-2">
                             Legen Sie fest, wann Sie regelmäßig reflektieren möchten.
                             Reflektieren Sie über verschiedene Aspekte Ihres Lernens.
@@ -248,14 +248,14 @@ export default function HelpPage() {
                       </div>
                       <div className="flex flex-col space-y-4 rounded-lg border p-6">
                         <div className="rounded-full bg-primary/10 p-3 self-start">
-                          <LineChart className="h-6 w-6 text-primary" />
-                        </div>
+                              <LineChart className="h-6 w-6 text-primary" />
+                            </div>
                         <div>
-                          <h3 className="text-lg font-medium">4. Fortschritt verfolgen</h3>
+                            <h3 className="text-lg font-medium">4. Fortschritt verfolgen</h3>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Beobachten Sie Ihre Entwicklung im Dashboard und entdecken
+                              Beobachten Sie Ihre Entwicklung im Dashboard und entdecken
                             Sie Muster und Verbesserungspotenziale in Ihrem Lernverhalten.
-                          </p>
+                            </p>
                           <Button variant="link" size="sm" asChild className="px-0 mt-2">
                             <Link href="/dashboard" className="gap-1">
                               <span>Dashboard öffnen</span>
@@ -263,30 +263,30 @@ export default function HelpPage() {
                             </Link>
                           </Button>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
+                          </div>
+                        </div>
+                      </CardContent>
                   <CardFooter className="border-t pt-4">
                     <div className="flex items-center text-sm text-muted-foreground gap-2">
                       <Video className="h-4 w-4 text-primary" />
                       <span>Tutorial-Videos finden Sie im Bereich "FAQ"</span>
                     </div>
                   </CardFooter>
-                </Card>
-              </TabsContent>
+                    </Card>
+                  </TabsContent>
 
-              <TabsContent value="faq" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="h-6 w-6 text-primary" />
+                  <TabsContent value="faq" className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <HelpCircle className="h-6 w-6 text-primary" />
                       <CardTitle>Häufig gestellte Fragen</CardTitle>
-                    </div>
-                    <CardDescription>
+                        </div>
+                        <CardDescription>
                       Antworten auf Ihre wichtigsten Fragen
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="item-1">
                         <AccordionTrigger>Wie funktioniert die KI-Analyse meiner Reflexionstexte?</AccordionTrigger>
@@ -353,7 +353,7 @@ export default function HelpPage() {
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
-                  </CardContent>
+                      </CardContent>
                   <CardFooter className="border-t pt-4 flex justify-between">
                     <div className="flex items-center text-sm text-muted-foreground gap-2">
                       <Search className="h-4 w-4" />
@@ -363,20 +363,20 @@ export default function HelpPage() {
                       <Link href="mailto:support@reflectify.example.com">Kontakt</Link>
                     </Button>
                   </CardFooter>
-                </Card>
-              </TabsContent>
+                    </Card>
+                  </TabsContent>
 
-              <TabsContent value="process" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
+                  <TabsContent value="process" className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
                       <Layers className="h-6 w-6 text-primary" />
-                      <CardTitle>Der Reflexionsprozess</CardTitle>
-                    </div>
-                    <CardDescription>
+                          <CardTitle>Der Reflexionsprozess</CardTitle>
+                        </div>
+                        <CardDescription>
                       Verstehen Sie die verschiedenen Reflexionsebenen
-                    </CardDescription>
-                  </CardHeader>
+                        </CardDescription>
+                      </CardHeader>
                   <CardContent className="space-y-6">
                     <div>
                       <h3 className="font-medium mb-2">Moons Reflexionsebenen</h3>
@@ -396,75 +396,75 @@ export default function HelpPage() {
                     <div className="border-t pt-6">
                       <h3 className="font-medium mb-4">Reflexionsprozess in 4 Schritten</h3>
                       
-                      <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-primary/20 before:to-transparent">
-                        <div className="relative flex items-center gap-6">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
-                            <span className="text-sm font-medium">1</span>
+                        <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-primary/20 before:to-transparent">
+                          <div className="relative flex items-center gap-6">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
+                              <span className="text-sm font-medium">1</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <h4 className="font-medium">Situation beschreiben</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Beschreiben Sie die Lernsituation oder -erfahrung detailliert.
+                                Was ist passiert? Wann und wo? Wer war beteiligt?
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex flex-col">
-                            <h4 className="font-medium">Situation beschreiben</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Beschreiben Sie die Lernsituation oder -erfahrung detailliert.
-                              Was ist passiert? Wann und wo? Wer war beteiligt?
-                            </p>
+
+                          <div className="relative flex items-center gap-6">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
+                              <span className="text-sm font-medium">2</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <h4 className="font-medium">Gedanken & Gefühle</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Reflektieren Sie über Ihre emotionale Reaktion und Gedanken.
+                                Was haben Sie gefühlt? Was ging Ihnen durch den Kopf?
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="relative flex items-center gap-6">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
+                              <span className="text-sm font-medium">3</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <h4 className="font-medium">Bewertung & Analyse</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Analysieren Sie die Situation objektiv. Was lief gut?
+                                Was hätte besser sein können? Welche Faktoren spielten eine Rolle?
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="relative flex items-center gap-6">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
+                              <span className="text-sm font-medium">4</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <h4 className="font-medium">Schlussfolgerungen</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Ziehen Sie konkrete Schlüsse. Was haben Sie gelernt?
+                                Wie können Sie das Gelernte in Zukunft anwenden?
+                              </p>
+                          </div>
+                            </div>
                           </div>
                         </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
-                        <div className="relative flex items-center gap-6">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
-                            <span className="text-sm font-medium">2</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <h4 className="font-medium">Gedanken & Gefühle</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Reflektieren Sie über Ihre emotionale Reaktion und Gedanken.
-                              Was haben Sie gefühlt? Was ging Ihnen durch den Kopf?
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="relative flex items-center gap-6">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
-                            <span className="text-sm font-medium">3</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <h4 className="font-medium">Bewertung & Analyse</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Analysieren Sie die Situation objektiv. Was lief gut?
-                              Was hätte besser sein können? Welche Faktoren spielten eine Rolle?
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="relative flex items-center gap-6">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow">
-                            <span className="text-sm font-medium">4</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <h4 className="font-medium">Schlussfolgerungen</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Ziehen Sie konkrete Schlüsse. Was haben Sie gelernt?
-                              Wie können Sie das Gelernte in Zukunft anwenden?
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="ai" className="space-y-6">
+                  <TabsContent value="ai" className="space-y-6">
                 <Card className="border-primary/30">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Brain className="h-6 w-6 text-primary" />
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Brain className="h-6 w-6 text-primary" />
                       <CardTitle>KI-Unterstützung & Transparenz</CardTitle>
-                    </div>
-                    <CardDescription>
+                        </div>
+                        <CardDescription>
                       Verstehen Sie, wie die KI-Funktionen Sie unterstützen
-                    </CardDescription>
-                  </CardHeader>
+                        </CardDescription>
+                      </CardHeader>
                   <CardContent className="space-y-6">
                     <div>
                       <h3 className="font-medium mb-3">KPI-Analyse der Reflexionstexte</h3>
@@ -497,9 +497,9 @@ export default function HelpPage() {
                           color="bg-red-50/50 dark:bg-red-950/20" 
                           description="Bewertet, wie konkret und umsetzbar die aus Ihrer Reflexion abgeleiteten Handlungsschritte und Lösungsansätze sind."
                         />
-                      </div>
-                    </div>
-                    
+                            </div>
+                          </div>
+
                     <div className="border-t pt-6">
                       <h3 className="font-medium mb-3">KI-Transparenz</h3>
                       <p className="text-sm text-muted-foreground mb-4">
@@ -510,31 +510,31 @@ export default function HelpPage() {
                         <div className="flex items-start gap-3 p-3 rounded-lg border">
                           <div className="rounded-full bg-primary/10 p-2">
                             <BarChart2 className="h-5 w-5 text-primary" />
-                          </div>
+                              </div>
                           <div>
                             <h4 className="font-medium">Detaillierte KPI-Erläuterungen</h4>
                             <p className="text-sm text-muted-foreground mt-1">
                               Zu jeder KPI-Bewertung können Sie sich die Berechnungsgrundlage und konkreten Textelemente anzeigen lassen, die zu dem Wert beigetragen haben.
-                            </p>
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        
+
                         <div className="flex items-start gap-3 p-3 rounded-lg border">
                           <div className="rounded-full bg-primary/10 p-2">
                             <Sparkles className="h-5 w-5 text-primary" />
-                          </div>
+                              </div>
                           <div>
                             <h4 className="font-medium">Adaptive Reflexionsimpulse</h4>
                             <p className="text-sm text-muted-foreground mt-1">
                               Die KI generiert personalisierte Schreibimpulse basierend auf Ihren bisherigen Reflexionen, um gezielt Ihre Entwicklung zu fördern. Sie können nachvollziehen, warum bestimmte Impulse vorgeschlagen werden.
-                            </p>
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        
+
                         <div className="flex items-start gap-3 p-3 rounded-lg border">
                           <div className="rounded-full bg-primary/10 p-2">
                             <TrendingUp className="h-5 w-5 text-primary" />
-                          </div>
+                              </div>
                           <div>
                             <h4 className="font-medium">Fortschrittsanalyse</h4>
                             <p className="text-sm text-muted-foreground mt-1">
@@ -552,9 +552,9 @@ export default function HelpPage() {
                         <p className="text-sm text-amber-600/90 dark:text-amber-300/90 mt-1">
                           Reflectify nutzt KI als Unterstützungswerkzeug, nicht als Ersatz für Ihre eigene Reflexion. Die KI-Analysen sind Anregungen, die Ihnen helfen sollen, Ihre Reflexionsfähigkeit zu verbessern. Die endgültige Bewertung und Interpretation bleibt immer bei Ihnen.
                         </p>
-                      </div>
                     </div>
-                  </CardContent>
+                  </div>
+                </CardContent>
                   <CardFooter className="border-t pt-4">
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/settings" className="gap-1">
@@ -563,12 +563,12 @@ export default function HelpPage() {
                       </Link>
                     </Button>
                   </CardFooter>
-                </Card>
+              </Card>
               </TabsContent>
             </div>
           </ScrollArea>
-        </Tabs>
-      </div>
+          </Tabs>
+        </div>
     </div>
   )
 }

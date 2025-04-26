@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from "next/link"
 import { FileText, Plus, Search, Calendar, Tag, ArrowUpDown, Filter, PieChart, Sparkles, Brain, Lightbulb, Target, Clock, CheckCircle, TrendingUp, HelpCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import RequireAuth from "@/components/RequireAuth"
 
 // Moon's Reflection Levels Badge Component
 const ReflectionLevelBadge = ({ level }: { level: string }) => {
@@ -181,103 +182,205 @@ export default function ReflectionsPage() {
   
   const categories = ["Studium", "Persönlich", "Arbeit"]
   const filteredReflections = getFilteredAndSortedReflections()
-  
-  return (
-    <div className="py-6 space-y-6">
-      <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Meine Reflexionen</h1>
-          <p className="text-muted-foreground mt-1">Verwalten und analysieren Sie Ihre Reflexionen</p>
-        </div>
-        <Button asChild>
-          <Link href="/reflections/new" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Neue Reflexion
-          </Link>
-        </Button>
-      </div>
 
-      {/* Enhanced filter bar */}
-      <div className="px-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3 justify-between">
-                <div className="relative flex-grow max-w-md">
+  return (
+    <RequireAuth>
+      <div className="py-6 space-y-6">
+        <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Meine Reflexionen</h1>
+            <p className="text-muted-foreground mt-1">Verwalten und analysieren Sie Ihre Reflexionen</p>
+          </div>
+          <Button asChild>
+            <Link href="/reflections/new" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Neue Reflexion
+            </Link>
+          </Button>
+        </div>
+
+        {/* Enhanced filter bar */}
+        <div className="px-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 justify-between">
+                  <div className="relative flex-grow max-w-md">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Reflexionen durchsuchen..."
-                    className="pl-8"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Reflexionen durchsuchen..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={showFilters ? "bg-primary/10 text-primary border-primary/30" : ""}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[160px]">
-                      <div className="flex items-center gap-2">
-                        <ArrowUpDown className="h-4 w-4" />
-                        <span>Sortieren</span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date-desc">Neueste zuerst</SelectItem>
-                      <SelectItem value="date-asc">Älteste zuerst</SelectItem>
-                      <SelectItem value="score-desc">Höchster Score</SelectItem>
-                      <SelectItem value="score-asc">Niedrigster Score</SelectItem>
-                      <SelectItem value="title-asc">Titel (A-Z)</SelectItem>
-                      <SelectItem value="title-desc">Titel (Z-A)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={showFilters ? "bg-primary/10 text-primary border-primary/30" : ""}
+                    >
+                  <Filter className="h-4 w-4" />
+                </Button>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-[160px]">
+                        <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                          <span>Sortieren</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date-desc">Neueste zuerst</SelectItem>
+                        <SelectItem value="date-asc">Älteste zuerst</SelectItem>
+                        <SelectItem value="score-desc">Höchster Score</SelectItem>
+                        <SelectItem value="score-asc">Niedrigster Score</SelectItem>
+                        <SelectItem value="title-asc">Titel (A-Z)</SelectItem>
+                        <SelectItem value="title-desc">Titel (Z-A)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
-              
-              {showFilters && (
-                <div className="flex flex-wrap gap-3 pt-3 border-t">
-                  <div>
-                    <span className="text-sm font-medium mr-2">Kategorien:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      <Badge 
-                        variant={selectedCategory === "all" ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => setSelectedCategory("all")}
-                      >
-                        Alle
-                      </Badge>
-                      {categories.map(category => (
+                
+                {showFilters && (
+                  <div className="flex flex-wrap gap-3 pt-3 border-t">
+                    <div>
+                      <span className="text-sm font-medium mr-2">Kategorien:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
                         <Badge 
-                          key={category}
-                          variant={selectedCategory === category ? "default" : "outline"}
+                          variant={selectedCategory === "all" ? "default" : "outline"}
                           className="cursor-pointer"
-                          onClick={() => setSelectedCategory(category)}
+                          onClick={() => setSelectedCategory("all")}
                         >
-                          {category}
+                          Alle
                         </Badge>
-                      ))}
+                        {categories.map(category => (
+                          <Badge 
+                            key={category}
+                            variant={selectedCategory === category ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedCategory(category)}
+                          >
+                            {category}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className="text-sm font-medium">Reflexionsstufen:</span>
+                      <div className="flex gap-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center">
+                                <ReflectionLevelBadge level="Descriptive" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p className="text-xs">Beschreibende Reflexion: Beobachtungen und Erfahrungen werden beschrieben</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center">
+                                <ReflectionLevelBadge level="Analytical" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p className="text-xs">Analytische Reflexion: Gründe und Zusammenhänge werden untersucht</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center">
+                                <ReflectionLevelBadge level="Critical" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p className="text-xs">Kritische Reflexion: Tiefere Analyse mit Berücksichtigung verschiedener Perspektiven</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="ml-auto flex items-center gap-2">
-                    <span className="text-sm font-medium">Reflexionsstufen:</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Reflections grid with improvements */}
+        <div className="px-6">
+          {filteredReflections.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Keine Reflexionen gefunden</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+                Es wurden keine Reflexionen gefunden, die Ihren Filterkriterien entsprechen. Versuchen Sie, andere Filter anzuwenden oder erstellen Sie eine neue Reflexion.
+              </p>
+              <Button asChild>
+                <Link href="/reflections/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Neue Reflexion erstellen
+                </Link>
+              </Button>
+            </div>
+          ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredReflections.map((reflection) => (
+                <Card key={reflection.id} className="hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+                    <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <CardTitle className="line-clamp-1">{reflection.title}</CardTitle>
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                          {reflection.category}
+                        </Badge>
+                      </div>
+                    <CardDescription className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(reflection.date).toLocaleDateString('de-DE')}
+                      </span>
+                      <ReflectionLevelBadge level={reflection.moonLevel} />
+                      </CardDescription>
+                    </CardHeader>
+                  <CardContent className="pb-4 flex-grow">
+                    <ScrollArea className="h-24">
+                      <p className="text-sm text-muted-foreground">
+                        {reflection.excerpt}
+                      </p>
+                    </ScrollArea>
+                    </CardContent>
+                  <div className="px-6 pb-2">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">KPI-Score</span>
+                        <span className="font-medium">{reflection.avgScore}%</span>
+                      </div>
+                      <Progress value={reflection.avgScore} className="h-1.5" />
+                    </div>
+                  </div>
+                  <CardFooter className="pt-2 flex justify-between">
                     <div className="flex gap-1">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center">
-                              <ReflectionLevelBadge level="Descriptive" />
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-blue-50 dark:bg-blue-900/20">
+                              <Brain className="h-3 w-3 text-blue-500" />
+                              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{reflection.kpis.depth}</span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
-                            <p className="text-xs">Beschreibende Reflexion: Beobachtungen und Erfahrungen werden beschrieben</p>
+                            <p className="text-xs">Reflexionstiefe: {reflection.kpis.depth}%</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -285,12 +388,13 @@ export default function ReflectionsPage() {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center">
-                              <ReflectionLevelBadge level="Analytical" />
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-green-50 dark:bg-green-900/20">
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                              <span className="text-xs font-medium text-green-700 dark:text-green-300">{reflection.kpis.coherence}</span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
-                            <p className="text-xs">Analytische Reflexion: Gründe und Zusammenhänge werden untersucht</p>
+                            <p className="text-xs">Kohärenz: {reflection.kpis.coherence}%</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -298,161 +402,60 @@ export default function ReflectionsPage() {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center">
-                              <ReflectionLevelBadge level="Critical" />
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-amber-50 dark:bg-amber-900/20">
+                              <Lightbulb className="h-3 w-3 text-amber-500" />
+                              <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{reflection.kpis.metacognition}</span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
-                            <p className="text-xs">Kritische Reflexion: Tiefere Analyse mit Berücksichtigung verschiedener Perspektiven</p>
+                            <p className="text-xs">Metakognition: {reflection.kpis.metacognition}%</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-red-50 dark:bg-red-900/20">
+                              <Target className="h-3 w-3 text-red-500" />
+                              <span className="text-xs font-medium text-red-700 dark:text-red-300">{reflection.kpis.actionable}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Handlungsorientierung: {reflection.kpis.actionable}%</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                    <Button variant="ghost" size="sm" className="text-xs" asChild>
+                      <Link href={`/reflections/${reflection.id}`}>
+                        Lesen
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
 
-      {/* Reflections grid with improvements */}
-      <div className="px-6">
-        {filteredReflections.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Keine Reflexionen gefunden</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-              Es wurden keine Reflexionen gefunden, die Ihren Filterkriterien entsprechen. Versuchen Sie, andere Filter anzuwenden oder erstellen Sie eine neue Reflexion.
-            </p>
-            <Button asChild>
-              <Link href="/reflections/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Neue Reflexion erstellen
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReflections.map((reflection) => (
-              <Card key={reflection.id} className="hover:shadow-md transition-shadow overflow-hidden flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start gap-2">
-                    <CardTitle className="line-clamp-1">{reflection.title}</CardTitle>
-                    <Badge variant="outline" className="shrink-0 text-xs">
-                      {reflection.category}
-                    </Badge>
-                  </div>
-                  <CardDescription className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {new Date(reflection.date).toLocaleDateString('de-DE')}
-                    </span>
-                    <ReflectionLevelBadge level={reflection.moonLevel} />
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4 flex-grow">
-                  <ScrollArea className="h-24">
-                    <p className="text-sm text-muted-foreground">
-                      {reflection.excerpt}
+              {/* "Create new" card */}
+              <Card className="border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors flex flex-col justify-center">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                    <Sparkles className="h-10 w-10 text-primary/40 mb-4" />
+                    <h3 className="text-lg font-medium text-center mb-2">Erstelle eine neue Reflexion</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-4 max-w-xs">
+                      Dokumentiere deine Gedanken und erhalte wertvolle KI-Einsichten
                     </p>
-                  </ScrollArea>
-                </CardContent>
-                <div className="px-6 pb-2">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">KPI-Score</span>
-                      <span className="font-medium">{reflection.avgScore}%</span>
-                    </div>
-                    <Progress value={reflection.avgScore} className="h-1.5" />
-                  </div>
-                </div>
-                <CardFooter className="pt-2 flex justify-between">
-                  <div className="flex gap-1">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-blue-50 dark:bg-blue-900/20">
-                            <Brain className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{reflection.kpis.depth}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Reflexionstiefe: {reflection.kpis.depth}%</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-green-50 dark:bg-green-900/20">
-                            <CheckCircle className="h-3 w-3 text-green-500" />
-                            <span className="text-xs font-medium text-green-700 dark:text-green-300">{reflection.kpis.coherence}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Kohärenz: {reflection.kpis.coherence}%</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-amber-50 dark:bg-amber-900/20">
-                            <Lightbulb className="h-3 w-3 text-amber-500" />
-                            <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{reflection.kpis.metacognition}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Metakognition: {reflection.kpis.metacognition}%</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-red-50 dark:bg-red-900/20">
-                            <Target className="h-3 w-3 text-red-500" />
-                            <span className="text-xs font-medium text-red-700 dark:text-red-300">{reflection.kpis.actionable}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Handlungsorientierung: {reflection.kpis.actionable}%</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-xs" asChild>
-                    <Link href={`/reflections/${reflection.id}`}>
-                      Lesen
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-
-            {/* "Create new" card */}
-            <Card className="border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors flex flex-col justify-center">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Sparkles className="h-10 w-10 text-primary/40 mb-4" />
-                <h3 className="text-lg font-medium text-center mb-2">Erstelle eine neue Reflexion</h3>
-                <p className="text-sm text-muted-foreground text-center mb-4 max-w-xs">
-                  Dokumentiere deine Gedanken und erhalte wertvolle KI-Einsichten
-                </p>
-                <Button asChild>
-                  <Link href="/reflections/new">
-                    <FileText className="mr-2 h-4 w-4" />
-                    Reflexion beginnen
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                    <Button asChild>
+                      <Link href="/reflections/new">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Reflexion beginnen
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+          )}
+        </div>
       </div>
-    </div>
+    </RequireAuth>
   )
 } 

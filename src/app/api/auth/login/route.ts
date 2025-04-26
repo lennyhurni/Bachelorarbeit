@@ -1,0 +1,47 @@
+import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+
+export async function POST(req: NextRequest) {
+  const formData = await req.formData()
+  const email = formData.get('email') as string
+  
+  if (!email) {
+    return NextResponse.json(
+      { error: 'Email is required' },
+      { status: 400 }
+    )
+  }
+
+  const cookieStore = cookies();
+  const supabase = createClient();
+  
+  try {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${new URL(req.url).origin}/auth/callback`
+      }
+    })
+    
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+    
+    return NextResponse.redirect(
+      new URL('/login/check-email', req.url),
+      {
+        status: 302
+      }
+    )
+  } catch (err) {
+    console.error('Fehler beim Login:', err);
+    return NextResponse.json(
+      { error: 'Ein Fehler ist aufgetreten' },
+      { status: 500 }
+    )
+  }
+} 
