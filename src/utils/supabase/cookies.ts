@@ -1,6 +1,5 @@
 import { cookies as nextCookies } from 'next/headers'
 import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 /**
  * Creates an async cookie store that works with Next.js 15
@@ -20,7 +19,7 @@ export async function createCookieStore() {
       cookieStore.set(name, value, options)
     },
     delete(name: string, options?: Partial<ResponseCookie>) {
-      cookieStore.delete({ name, ...options })
+      cookieStore.delete(name)
     }
   }
 }

@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   // Supabase Client mit Cookie-Unterstützung erstellen
   const supabase = await createClient();
