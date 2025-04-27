@@ -14,7 +14,7 @@ export default function LoginPage() {
           alt="Reflectify Logo"
           width={64}
           height={64}
-          className="mx-auto"
+          className="mx-auto rounded-full"
         />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
           Login to your account

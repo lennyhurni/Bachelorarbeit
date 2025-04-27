@@ -19,6 +19,8 @@ function LoginFormContent() {
 
   // Get the redirectTo value from URL params
   const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+  // Check if email was confirmed
+  const emailConfirmed = searchParams.get('email_confirmed') === 'true'
 
   // Check if the user is already logged in
   useEffect(() => {
@@ -79,6 +81,12 @@ function LoginFormContent() {
 
   return (
     <div className="space-y-6">
+      {emailConfirmed && (
+        <div className="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-md text-sm">
+          Your email has been successfully verified. You can now sign in to your account.
+        </div>
+      )}
+      
       {error && (
         <div className="bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300 p-3 rounded-md text-sm">
           {error}

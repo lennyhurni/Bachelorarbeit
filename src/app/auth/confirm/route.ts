@@ -18,7 +18,11 @@ export async function GET(request: NextRequest) {
       token_hash,
     })
     if (!error) {
-      // redirect user to specified redirect URL or dashboard
+      // On success, redirect to login with success message
+      if (next === '/dashboard' && type === 'signup') {
+        redirect('/login?email_confirmed=true')
+      }
+      // Otherwise, redirect user to specified redirect URL
       redirect(next)
     }
   }

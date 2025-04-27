@@ -8,11 +8,11 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Image
-          src="/webapp\src\Images\Reflectify_Logo.png"
+          src="/images/Reflectify_Logo.png"
           alt="Reflectify Logo"
           width={64}
           height={64}
-          className="mx-auto"
+          className="mx-auto rounded-full"
         />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
           Create a new account
