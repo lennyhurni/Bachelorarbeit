@@ -82,8 +82,9 @@ function LoginFormContent() {
   return (
     <div className="space-y-6">
       {emailConfirmed && (
-        <div className="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-md text-sm">
-          Your email has been successfully verified. You can now sign in to your account.
+        <div className="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-4 rounded-md mb-4 text-sm border border-green-200 dark:border-green-800">
+          <p className="font-medium">Ihre E-Mail-Adresse wurde erfolgreich bestätigt!</p>
+          <p>Sie können sich jetzt mit Ihren Anmeldedaten einloggen.</p>
         </div>
       )}
       

@@ -1,9 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { type EmailOtpType } from '@supabase/supabase-js'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -11,22 +10,51 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/dashboard'
 
-  if (token_hash && type) {
+  console.log('Auth confirm route called with:', { token_hash: !!token_hash, type, next })
+
+  if (!token_hash) {
+    console.error('No token_hash provided for email verification')
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bachelorarbeit-production.up.railway.app/'
+    return NextResponse.redirect(new URL('/login?error=Missing_verification_token', siteUrl))
+  }
+
+  if (!type) {
+    console.error('No type provided for email verification')
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bachelorarbeit-production.up.railway.app/'
+    return NextResponse.redirect(new URL('/login?error=Missing_verification_type', siteUrl))
+  }
+
+  try {
     const supabase = await createClient()
     const { error } = await supabase.auth.verifyOtp({
       type,
       token_hash,
     })
-    if (!error) {
-      // On success, redirect to login with success message
-      if (next === '/dashboard' && type === 'signup') {
-        redirect('/login?email_confirmed=true')
-      }
-      // Otherwise, redirect user to specified redirect URL
-      redirect(next)
-    }
-  }
 
-  // redirect the user to an error page
-  redirect('/login?error=Unable to verify your email. Please try signing in again.')
+    if (error) {
+      console.error('Error verifying OTP:', error.message)
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bachelorarbeit-production.up.railway.app/'
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, siteUrl)
+      )
+    }
+
+    // On success, redirect to login with success message
+    console.log('Email verification successful, redirecting to login')
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bachelorarbeit-production.up.railway.app/'
+    
+    if (type === 'signup') {
+      // For new user signups, show the confirmation message
+      return NextResponse.redirect(new URL('/login?email_confirmed=true', siteUrl))
+    }
+    
+    // For other types, just redirect to the intended destination
+    return NextResponse.redirect(new URL(next, siteUrl))
+  } catch (err) {
+    console.error('Unexpected error during email verification:', err)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bachelorarbeit-production.up.railway.app/'
+    return NextResponse.redirect(
+      new URL('/login?error=An_unexpected_error_occurred', siteUrl)
+    )
+  }
 } 
