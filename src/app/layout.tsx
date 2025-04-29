@@ -41,7 +41,7 @@ export default async function RootLayout({
   
   return (
     <html lang="de" suppressHydrationWarning>
-      <body className={inter.className} style={{ overflow: 'hidden', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <body className={inter.className} style={{ overflow: 'auto', height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

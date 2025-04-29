@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
+import { showSuccess, showError } from "@/utils/feedback"
 
 interface LogoutButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
@@ -31,17 +32,31 @@ export default function LogoutButton({
       })
       
       if (response.redirected) {
+        // Show success message before redirecting
+        showSuccess("logout")
+        
         // Follow the redirect if the server provides one
-        window.location.href = response.url
+        setTimeout(() => {
+          window.location.href = response.url
+        }, 1000)
       } else {
+        // Show success message
+        showSuccess("logout")
+        
         // Manually redirect to login if no redirect in response
-        router.push('/login')
-        router.refresh()
+        setTimeout(() => {
+          router.push('/login')
+          router.refresh()
+        }, 1000)
       }
     } catch (error) {
       console.error('Logout error:', error)
+      showError("logout")
+      
       // If there's an error, still try to redirect to login
-      router.push('/login')
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
     } finally {
       setIsLoading(false)
     }

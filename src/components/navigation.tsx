@@ -14,17 +14,19 @@ import { usePathname, useRouter } from "next/navigation"
 import LogoutButton from "./LogoutButton"
 import { createClientBrowser } from "@/utils/supabase/client"
 import { Session } from "@supabase/supabase-js"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Navigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState("")
+  const [userAvatar, setUserAvatar] = useState("")
+  const [userName, setUserName] = useState("")
   const [loading, setLoading] = useState(true)
+  const supabase = createClientBrowser()
 
   useEffect(() => {
-    const supabase = createClientBrowser()
-    
     const checkSession = async () => {
       try {
         setLoading(true)
@@ -45,9 +47,28 @@ export function Navigation() {
           if (session.user.email) {
             setUserEmail(session.user.email)
           }
+
+          // Fetch user profile including avatar
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('avatar_url, username, full_name')
+            .eq('id', session.user.id)
+            .single()
+
+          if (!userError && userData) {
+            setUserName(userData.username || userData.full_name || "")
+            if (userData.avatar_url) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(userData.avatar_url)
+              setUserAvatar(publicUrl)
+            }
+          }
         } else {
           setIsLoggedIn(false)
           setUserEmail("")
+          setUserAvatar("")
+          setUserName("")
         }
       } catch (error) {
         console.error('Error checking auth state:', error)
@@ -67,6 +88,8 @@ export function Navigation() {
           await supabase.auth.signOut()
           setIsLoggedIn(false)
           setUserEmail("")
+          setUserAvatar("")
+          setUserName("")
           router.push('/login')
           return
         }
@@ -75,14 +98,33 @@ export function Navigation() {
         if (session.user.email) {
           setUserEmail(session.user.email)
         }
+
+        // Fetch user profile including avatar on sign in
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('avatar_url, username, full_name')
+          .eq('id', session.user.id)
+          .single()
+
+        if (!userError && userData) {
+          setUserName(userData.username || userData.full_name || "")
+          if (userData.avatar_url) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(userData.avatar_url)
+            setUserAvatar(publicUrl)
+          }
+        }
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false)
         setUserEmail("")
+        setUserAvatar("")
+        setUserName("")
       }
     })
     
     return () => subscription.subscription.unsubscribe()
-  }, [router])
+  }, [router, supabase])
 
   // Get user's initial for avatar
   const getInitial = () => {
@@ -107,45 +149,21 @@ export function Navigation() {
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
-            {isLoggedIn && (
-              <>
-                <NavigationMenuItem>
-                  <Link href="/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent", 
-                      pathname === '/dashboard' && "bg-accent"
-                    )}>
-                      Dashboard
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/reflections" legacyBehavior passHref>
-                    <NavigationMenuLink className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent", 
-                      pathname.startsWith('/reflections') && "bg-accent"
-                    )}>
-                      Reflections
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </>
-            )}
           </NavigationMenuList>
         </NavigationMenu>
         
-        {/* Right aligned auth */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-4">
           {isLoggedIn ? (
             <>
               <Link 
                 href="/profile" 
                 className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
               >
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                  {getInitial()}
-                </div>
-                <span className="text-sm hidden md:inline">{userEmail || "Profile"}</span>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={userAvatar} />
+                  <AvatarFallback>{getInitial()}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm hidden md:inline">{userName || userEmail || "Profile"}</span>
               </Link>
               <LogoutButton />
             </>

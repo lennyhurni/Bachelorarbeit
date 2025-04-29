@@ -2,15 +2,24 @@
 
 import { useEffect, useState } from "react"
 import { createClientBrowser } from "@/utils/supabase/client"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRouter } from "next/navigation"
-import { User, Mail, Save } from "lucide-react"
+import { User, Mail, Save, Check, Settings, Bell, Moon, Brain, Upload, Loader2, Sun, Shield, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { useToast } from "@/components/ui/use-toast"
+import { useTheme } from "next-themes"
+import { showSuccess, showError } from "@/utils/feedback"
+import { Toaster } from "@/components/ui/toaster"
 
-// Typdefinition für Benutzerdaten
+// Type definition for user data
 interface UserProfile {
   id: string
   email: string
@@ -18,30 +27,37 @@ interface UserProfile {
   username?: string
   avatar_url?: string
   website?: string
+  settings?: any
 }
 
 export default function ProfileClient() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formValues, setFormValues] = useState<Partial<UserProfile>>({})
+  const { toast } = useToast()
   const supabase = createClientBrowser()
   const router = useRouter()
+  
+  // Use theme hook only for avatar display purposes
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     async function loadUserData() {
       try {
         setLoading(true)
+        setSaving(false)
         
-        // Session abrufen
+        // Check if user is logged in
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session) {
-          router.push('/login')
+          setLoading(false)
           return
         }
         
-        // Benutzerprofil abrufen
+        // Load profile data
         const { data: userData, error: userError } = await supabase
           .from('profiles')
           .select('*')
@@ -49,23 +65,33 @@ export default function ProfileClient() {
           .single()
         
         if (userError) {
-          console.error('Fehler beim Abrufen des Benutzerprofils:', userError)
+          console.error('Error loading user profile:', userError)
+          showError("profile", { 
+            title: "Fehler beim Laden", 
+            description: "Dein Profil konnte nicht geladen werden." 
+          })
+          return
         }
         
-        // Benutzerdaten setzen
-        const profileData = {
-          id: session.user.id,
-          email: session.user.email || '',
-          full_name: userData?.full_name || session.user.user_metadata?.full_name || '',
-          username: userData?.username || '',
-          avatar_url: userData?.avatar_url || session.user.user_metadata?.avatar_url || '',
-          website: userData?.website || ''
+        // Set user data - combine profile data with email from session
+        const userWithEmail = {
+          ...userData,
+          email: session.user.email || ''
         }
         
-        setUser(profileData)
-        setFormValues(profileData)
+        setUser(userWithEmail)
+        setFormValues(userWithEmail)
+        
+        // Set theme from user settings if available
+        if (userData?.settings?.theme) {
+          setTheme(userData.settings.theme)
+        }
       } catch (error) {
-        console.error('Fehler beim Laden der Benutzerdaten:', error)
+        console.error('Error loading user data:', error)
+        showError("profile", { 
+          title: "Fehler beim Laden", 
+          description: "Dein Profil konnte nicht geladen werden." 
+        })
       } finally {
         setLoading(false)
       }
@@ -79,6 +105,59 @@ export default function ProfileClient() {
     setFormValues({ ...formValues, [name]: value })
   }
 
+  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!user) return
+      setUploadingAvatar(true)
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.')
+      }
+      
+      const file = event.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`
+      
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file)
+      
+      if (uploadError) {
+        throw uploadError
+      }
+      
+      // Update user profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          avatar_url: fileName,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+      
+      if (updateError) {
+        throw updateError
+      }
+      
+      // Get public URL for immediate UI update
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+      
+      const updatedUser = { ...user, avatar_url: fileName }
+      setUser(updatedUser)
+      setFormValues(updatedUser)
+      
+      showSuccess("avatar")
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      showError("avatar")
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -87,8 +166,8 @@ export default function ProfileClient() {
     try {
       setSaving(true)
       
-      // Profildaten aktualisieren
-      const { error } = await supabase
+      // Update profile data
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: formValues.full_name,
@@ -98,103 +177,210 @@ export default function ProfileClient() {
         })
         .eq('id', user.id)
       
-      if (error) {
-        console.error('Fehler beim Aktualisieren des Profils:', error)
+      if (profileError) {
+        console.error('Error updating profile:', profileError)
+        showError("profile")
         return
       }
       
-      // Benutzerdaten aktualisieren
+      // Update user data
       setUser({
         ...user,
         ...formValues
       })
       
-      alert('Profil erfolgreich aktualisiert')
+      showSuccess("profile")
     } catch (error) {
-      console.error('Fehler beim Speichern der Profildaten:', error)
+      console.error('Error saving profile data:', error)
+      showError("profile")
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <div className="p-8 text-center">Lade Benutzerdaten...</div>
+    return (
+      <div className="container py-6 space-y-6">
+        <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-5 w-72" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <div className="px-6">
+          <div className="grid gap-4">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-60 w-full" />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="container py-8 max-w-md mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Profil
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <div className="flex items-center border rounded-md px-3 py-2 bg-muted">
-                <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>{user?.email}</span>
+    <div className="py-6 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
+      <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Mein Profil</h1>
+          <p className="text-muted-foreground mt-1">Verwalten Sie Ihre persönlichen Informationen</p>
+        </div>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={saving} 
+          className="gap-2"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Speichern...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              Änderungen speichern
+            </>
+          )}
+        </Button>
+      </div>
+      
+      <div className="px-6 grid gap-6">
+        {/* Profile Information Card */}
+        <Card className="shadow-sm border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <User className="h-5 w-5 text-primary" />
+              Persönliche Informationen
+            </CardTitle>
+            <CardDescription>
+              Hier können Sie Ihre Profildaten und Ihr Avatar bearbeiten
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+              <div className="flex flex-col items-center gap-3">
+                <Avatar className="h-28 w-28 border-2 border-muted">
+                  <AvatarImage 
+                    src={user?.avatar_url ? 
+                      supabase.storage.from('avatars').getPublicUrl(user.avatar_url).data.publicUrl
+                      : undefined} 
+                  />
+                  <AvatarFallback className="text-xl bg-primary/10 text-primary">{user?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <Label htmlFor="avatar" className="cursor-pointer text-sm px-3 py-1.5 border rounded-md hover:bg-muted inline-flex items-center gap-1">
+                    {uploadingAvatar ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Wird hochgeladen...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-3 w-3" />
+                        Bild ändern
+                      </>
+                    )}
+                  </Label>
+                  <input 
+                    id="avatar" 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={uploadAvatar} 
+                    disabled={uploadingAvatar}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex-1 space-y-4 w-full">
+                <form onSubmit={handleSubmit} className="space-y-4 w-full">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name">Vollständiger Name</Label>
+                      <Input
+                        id="full_name"
+                        name="full_name"
+                        placeholder="Ihr Name"
+                        value={formValues.full_name || ''}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Benutzername</Label>
+                      <Input
+                        id="username"
+                        name="username"
+                        placeholder="Ihr Benutzername"
+                        value={formValues.username || ''}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-Mail-Adresse</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground">Die E-Mail-Adresse kann nicht geändert werden.</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      name="website"
+                      placeholder="https://ihre-website.de"
+                      value={formValues.website || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </form>
               </div>
             </div>
-            
-            <div className="space-y-1">
-              <Label htmlFor="full_name">Vollständiger Name</Label>
-              <Input
-                id="full_name"
-                name="full_name"
-                value={formValues.full_name || ''}
-                onChange={handleChange}
-                placeholder="Max Mustermann"
-              />
+          </CardContent>
+        </Card>
+        
+        {/* Security Card */}
+        <Card className="shadow-sm border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Shield className="h-5 w-5 text-primary" />
+              Sicherheit & Datenschutz
+            </CardTitle>
+            <CardDescription>
+              Verwalten Sie Ihre Sicherheitseinstellungen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Passwort ändern</Label>
+                <p className="text-sm text-muted-foreground">Aktualisieren Sie Ihr Passwort regelmäßig für mehr Sicherheit</p>
+              </div>
+              <Button variant="outline" onClick={() => alert('Noch nicht implementiert')}>
+                Passwort ändern
+              </Button>
             </div>
-            
-            <div className="space-y-1">
-              <Label htmlFor="username">Benutzername</Label>
-              <Input
-                id="username"
-                name="username"
-                value={formValues.username || ''}
-                onChange={handleChange}
-                placeholder="maxmustermann"
-              />
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="space-y-0.5">
+                <Label className="text-destructive">Konto löschen</Label>
+                <p className="text-sm text-muted-foreground">Löscht alle Ihre Daten unwiderruflich</p>
+              </div>
+              <Button variant="destructive" size="sm" onClick={() => alert('Noch nicht implementiert')}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Konto löschen
+              </Button>
             </div>
-            
-            <div className="space-y-1">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                name="website"
-                value={formValues.website || ''}
-                onChange={handleChange}
-                placeholder="https://beispiel.de"
-              />
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full flex items-center gap-2"
-              disabled={saving}
-            >
-              {saving ? 'Wird gespeichert...' : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Speichern
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <Link href="/dashboard" className="w-full">
-            <Button variant="outline" className="w-full">
-              Zurück zum Dashboard
-            </Button>
-          </Link>
-        </CardFooter>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+      <Toaster />
     </div>
   )
 } 

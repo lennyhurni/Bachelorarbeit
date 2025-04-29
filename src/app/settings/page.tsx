@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
+import { createClientBrowser } from "@/utils/supabase/client"
 import {
   Settings as SettingsIcon,
   Bell,
@@ -45,10 +46,13 @@ import {
   ShieldCheck,
   User,
   Code,
+  Loader2
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import RequireAuth from "@/components/RequireAuth"
+import { showSuccess, showError } from "@/utils/feedback"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface UserSettings {
   theme: string
@@ -58,7 +62,7 @@ interface UserSettings {
   notificationFrequency: string
   aiSuggestions: boolean
   aiLevel: number
-  feedbackDepth: number
+  feedbackDepth: string // changed to string: 'basic', 'standard', 'detailed'
   aiTopics: string[]
   aiPersonalization: boolean
   aiDataUsage: boolean
@@ -66,6 +70,11 @@ interface UserSettings {
   twoFactor: boolean
   dataRetention: string
   showSystemInfo: boolean
+}
+
+interface UserProfile {
+  id: string
+  settings?: UserSettings
 }
 
 // Helper component for setting groups
@@ -141,7 +150,11 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
-  const [settings, setSettings] = useState<UserSettings>({
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientBrowser()
+  
+  const defaultSettings: UserSettings = {
     theme: "system",
     language: "de",
     notifications: true,
@@ -149,7 +162,7 @@ export default function SettingsPage() {
     notificationFrequency: "daily",
     aiSuggestions: true,
     aiLevel: 75,
-    feedbackDepth: 2, // 1: Basic, 2: Standard, 3: Detailed
+    feedbackDepth: "standard", // changed from numeric to string value
     aiTopics: ["technical", "softskills", "project"],
     aiPersonalization: true,
     aiDataUsage: true,
@@ -157,25 +170,67 @@ export default function SettingsPage() {
     twoFactor: false,
     dataRetention: "1year",
     showSystemInfo: true
-  })
+  }
+  
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings)
   const [savedSettings, setSavedSettings] = useState<UserSettings | null>(null)
 
-  // Load settings from localStorage on mount only
+  // Load settings from Supabase on mount
   useEffect(() => {
-    const savedSettingsJson = localStorage.getItem("userSettings")
-    if (savedSettingsJson) {
+    async function loadUserSettings() {
       try {
-        const parsed = JSON.parse(savedSettingsJson)
-        setSettings(prev => ({...prev, ...parsed}))
-        setSavedSettings({...parsed})
-      } catch (e) {
-        console.error("Error parsing settings:", e)
+        setLoading(true)
+        
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session?.user) {
+          console.log('No user session found')
+          setLoading(false)
+          return
+        }
+        
+        setUserId(session.user.id)
+        
+        // Get user profile with settings
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('settings')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (userError) {
+          console.error('Error fetching user settings:', userError)
+          return
+        }
+        
+        if (userData?.settings) {
+          // Merge with defaults to ensure we have all fields
+          const mergedSettings = {
+            ...defaultSettings,
+            ...userData.settings
+          }
+          
+          setSettings(mergedSettings)
+          setSavedSettings(mergedSettings)
+          
+          // Sync theme with system
+          if (mergedSettings.theme) {
+            setTheme(mergedSettings.theme)
+          }
+        } else {
+          // If no settings exist yet, use defaults
+          setSettings(defaultSettings)
+          setSavedSettings(defaultSettings)
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error)
+      } finally {
+        setLoading(false)
       }
-    } else {
-      // If no saved settings, current settings are the "saved" state
-      setSavedSettings({...settings})
     }
-  }, [])
+    
+    loadUserSettings()
+  }, [supabase, setTheme])
 
   // Sync theme with settings when theme changes externally
   useEffect(() => {
@@ -185,7 +240,29 @@ export default function SettingsPage() {
   }, [theme])
 
   const handleThemeChange = (value: string) => {
+    // Set the theme immediately for UI responsiveness
     setTheme(value)
+    
+    // Update local settings state
+    setSettings(prev => ({ ...prev, theme: value }))
+    
+    // If user is logged in, save to backend (but don't show toast here)
+    if (userId) {
+      supabase
+        .from('profiles')
+        .update({
+          settings: { ...settings, theme: value }
+        })
+        .eq('id', userId)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error saving theme setting:', error)
+          } else {
+            // Successfully saved to backend
+            localStorage.setItem("userTheme", value)
+          }
+        })
+    }
   }
 
   const handleSettingChange = <K extends keyof UserSettings>(
@@ -195,7 +272,15 @@ export default function SettingsPage() {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!userId) {
+      showError("settings", {
+        title: "Fehler",
+        description: "Sie sind nicht eingeloggt."
+      })
+      return
+    }
+    
     setIsSaving(true)
     
     // Save current settings including current theme
@@ -204,87 +289,119 @@ export default function SettingsPage() {
       theme: theme || "system"
     }
     
-    setTimeout(() => {
-      try {
-        localStorage.setItem("userSettings", JSON.stringify(settingsToSave))
-        setSavedSettings({...settingsToSave})
-        setIsSaving(false)
-        toast({
-          title: "Einstellungen gespeichert",
-          description: "Ihre Einstellungen wurden erfolgreich gespeichert.",
+    try {
+      // Save to Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          settings: settingsToSave
         })
-      } catch (error) {
-        console.error('Error saving settings:', error)
-        toast({
-          title: "Fehler beim Speichern",
-          description: "Ihre Einstellungen konnten nicht gespeichert werden.",
-          variant: "destructive"
-        })
-      }
-    }, 800)
-  }
-
-  const handleReset = () => {
-    const confirmReset = window.confirm("Möchten Sie wirklich alle Einstellungen zurücksetzen?")
-    if (confirmReset) {
-      const defaultSettings: UserSettings = {
-        theme: "system",
-        language: "de",
-        notifications: true,
-        notificationTime: "18",
-        notificationFrequency: "daily",
-        aiSuggestions: true,
-        aiLevel: 75,
-        feedbackDepth: 2,
-        aiTopics: ["technical", "softskills", "project"],
-        aiPersonalization: true,
-        aiDataUsage: true,
-        analytics: true,
-        twoFactor: false,
-        dataRetention: "1year",
-        showSystemInfo: true
+        .eq('id', userId)
+      
+      if (error) {
+        throw error
       }
       
-      setSettings(defaultSettings)
-      setTheme(defaultSettings.theme)
+      // Also save to localStorage for backup/faster access
+      localStorage.setItem("userSettings", JSON.stringify(settingsToSave))
+      setSavedSettings({...settingsToSave})
       
-      toast({
-        title: "Einstellungen zurückgesetzt",
-        description: "Alle Einstellungen wurden auf die Standardwerte zurückgesetzt.",
-      })
+      showSuccess("settings")
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      showError("settings")
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  // Check if any settings have changed
-  const hasChanges = savedSettings && Object.keys(settings).some(key => {
-    const k = key as keyof UserSettings
-    return settings[k] !== savedSettings[k]
-  })
+  const handleReset = async () => {
+    const confirmReset = window.confirm("Möchten Sie wirklich alle Einstellungen zurücksetzen?")
+    
+    if (confirmReset && userId) {
+      setIsSaving(true)
+      
+      try {
+        // Reset to default settings
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            settings: defaultSettings
+          })
+          .eq('id', userId)
+        
+        if (error) {
+          throw error
+        }
+        
+        // Update local state
+        setSettings(defaultSettings)
+        setSavedSettings(defaultSettings)
+        setTheme(defaultSettings.theme)
+        
+        // Clear localStorage
+        localStorage.removeItem("userSettings")
+        
+        showSuccess("reset")
+      } catch (error) {
+        console.error('Error resetting settings:', error)
+        showError("reset")
+      } finally {
+        setIsSaving(false)
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="py-6 space-y-6">
+        <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-5 w-72" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-36" />
+          </div>
+        </div>
+        <div className="px-6">
+          <div className="grid gap-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <RequireAuth>
-      <div className="p-6 pb-12 max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="py-6 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
+        <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Einstellungen</h1>
-            <p className="text-muted-foreground">Verwalten Sie Ihre App- und Kontoeinstellungen</p>
+            <p className="text-muted-foreground mt-1">Passen Sie die Anwendung an Ihre Bedürfnisse an</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              onClick={handleReset}
-              className="gap-1.5"
+              onClick={handleReset} 
+              disabled={isSaving}
+              className="gap-2"
             >
-              <AlertCircle className="h-4 w-4" />
               Zurücksetzen
             </Button>
             <Button 
-              onClick={handleSave}
-              disabled={isSaving || !hasChanges}
-              className="gap-1.5"
+              onClick={handleSave} 
+              disabled={isSaving || !savedSettings}
+              className="gap-2"
             >
               {isSaving ? (
-                <>Speichern...</>
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Speichern...
+                </>
               ) : (
                 <>
                   <Save className="h-4 w-4" />
@@ -294,474 +411,359 @@ export default function SettingsPage() {
             </Button>
           </div>
         </div>
-        
-        <Tabs defaultValue="appearance">
-          <div className="mb-8 overflow-x-auto">
-            <TabsList className="mb-0 justify-start">
-              <TabsTrigger value="appearance" className="gap-1.5">
-                <Sun className="h-4 w-4" />
-                Darstellung
+
+        <div className="px-6">
+          <Tabs defaultValue="general" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 md:w-auto">
+              <TabsTrigger value="general" className="gap-2 px-2 text-xs sm:text-sm overflow-hidden">
+                <Settings className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">Allgemein</span>
+                <span className="inline sm:hidden">Allg.</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="gap-1.5">
-                <Bell className="h-4 w-4" />
-                Benachrichtigungen
+              <TabsTrigger value="notifications" className="gap-2 px-2 text-xs sm:text-sm overflow-hidden">
+                <Bell className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">Benachrichtigungen</span>
+                <span className="inline sm:hidden">Benachr.</span>
               </TabsTrigger>
-              <TabsTrigger value="ai" className="gap-1.5">
-                <Brain className="h-4 w-4" />
-                KI-Funktionen
+              <TabsTrigger value="ai" className="gap-2 px-2 text-xs sm:text-sm overflow-hidden">
+                <Brain className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">KI-Funktionen</span>
+                <span className="inline sm:hidden">KI</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-1.5">
-                <BarChart className="h-4 w-4" />
-                Analytik
-              </TabsTrigger>
-              <TabsTrigger value="security" className="gap-1.5">
-                <ShieldCheck className="h-4 w-4" />
-                Sicherheit & Datenschutz
-              </TabsTrigger>
-              <TabsTrigger value="about" className="gap-1.5">
-                <Info className="h-4 w-4" />
-                Über
+              <TabsTrigger value="security" className="gap-2 px-2 text-xs sm:text-sm overflow-hidden">
+                <Shield className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">Sicherheit</span>
+                <span className="inline sm:hidden">Sicherh.</span>
               </TabsTrigger>
             </TabsList>
-          </div>
-      
-          <TabsContent value="appearance" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Darstellung</CardTitle>
-                <CardDescription>
-                  Passen Sie das Erscheinungsbild der Anwendung an
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <SettingGroup
-                  title="Erscheinungsbild"
-                  description="Passen Sie die visuelle Darstellung der Anwendung an"
-                  icon={<Settings className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem
-                    label="Farbschema"
-                    description="Wählen Sie zwischen hellem und dunklem Modus"
-                  >
-                    <Select
-                      value={settings.theme}
-                      onValueChange={(value) => handleThemeChange(value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Wählen Sie ein Farbschema" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">
-                          <div className="flex items-center gap-2">
-                            <Sun className="h-4 w-4" />
-                            <span>Hell</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="dark">
-                          <div className="flex items-center gap-2">
-                            <Moon className="h-4 w-4" />
-                            <span>Dunkel</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="system">
-                          <div className="flex items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            <span>System</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </SettingItem>
-                </SettingGroup>
-                
-                <SettingGroup
-                  title="Sprache"
-                  description="Wählen Sie die Anzeigesprache für die Benutzeroberfläche"
-                  icon={<Languages className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem label="Sprache">
-                    <Select
-                      value={settings.language}
-                      onValueChange={(value) => handleSettingChange('language', value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Wählen Sie eine Sprache" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="de">Deutsch</SelectItem>
-                        <SelectItem value="en">Englisch</SelectItem>
-                        <SelectItem value="fr">Französisch</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </SettingItem>
-                </SettingGroup>
-                
-                <SettingGroup
-                  title="System"
-                  description="Verwalten Sie Systemeinstellungen"
-                  icon={<Code className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem
-                    label="Systeminformationen anzeigen"
-                    description="Zeigt technische Informationen in der Fußzeile an"
-                    tooltip="Diese Information kann bei der Fehlersuche hilfreich sein"
-                  >
-                    <Switch
-                      checked={settings.showSystemInfo}
-                      onCheckedChange={(checked) => handleSettingChange('showSystemInfo', checked)}
-                    />
-                  </SettingItem>
-                </SettingGroup>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="notifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Benachrichtigungen</CardTitle>
-                <CardDescription>
-                  Verwalten Sie, wie und wann Sie benachrichtigt werden
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <SettingGroup
-                  title="Benachrichtigungen"
-                  description="Konfigurieren Sie Benachrichtigungseinstellungen"
-                  icon={<Bell className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem 
-                    label="Benachrichtigungen aktivieren" 
-                    description="Erhalten Sie Erinnerungen zur regelmäßigen Reflexion"
-                  >
-                    <Switch
-                      checked={settings.notifications}
-                      onCheckedChange={(checked) => handleSettingChange('notifications', checked)}
-                    />
-                  </SettingItem>
-                  
-                  {settings.notifications && (
-                    <>
-                      <SettingItem label="Häufigkeit">
-                        <Select
-                          value={settings.notificationFrequency}
-                          onValueChange={(value) => handleSettingChange('notificationFrequency', value)}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Wählen Sie eine Häufigkeit" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="daily">Täglich</SelectItem>
-                            <SelectItem value="weekly">Wöchentlich</SelectItem>
-                            <SelectItem value="biweekly">Zweiwöchentlich</SelectItem>
-                            <SelectItem value="monthly">Monatlich</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </SettingItem>
-                      
-                      <SettingItem 
-                        label="Uhrzeit der Benachrichtigung" 
-                        description="Wählen Sie eine bevorzugte Tageszeit für Benachrichtigungen"
-                      >
-                        <Select
-                          value={settings.notificationTime}
-                          onValueChange={(value) => handleSettingChange('notificationTime', value)}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Wählen Sie eine Zeit" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="9">09:00 Uhr</SelectItem>
-                            <SelectItem value="12">12:00 Uhr</SelectItem>
-                            <SelectItem value="15">15:00 Uhr</SelectItem>
-                            <SelectItem value="18">18:00 Uhr</SelectItem>
-                            <SelectItem value="21">21:00 Uhr</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </SettingItem>
-                    </>
-                  )}
-                </SettingGroup>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="ai" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>KI-Funktionen</CardTitle>
-                <CardDescription>
-                  Verwalten Sie, wie KI-Features für Ihre Reflexionen verwendet werden
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <SettingGroup
-                  title="KI-Unterstützung"
-                  description="Steuern Sie, wie KI-Funktionen Ihre Reflexionen verbessern"
-                  icon={<Brain className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem 
-                    label="KI-Vorschläge aktivieren" 
-                    description="Erhalten Sie Vorschläge für tiefere Reflexionen und Erkenntnisse"
-                  >
-                    <Switch
-                      checked={settings.aiSuggestions}
-                      onCheckedChange={(checked) => handleSettingChange('aiSuggestions', checked)}
-                    />
-                  </SettingItem>
-                  
-                  {settings.aiSuggestions && (
-                    <>
-                      <SettingItem 
-                        label="KI-Intensität" 
-                        description="Stellt ein, wie aktiv die KI Vorschläge machen soll"
-                        tooltip="Höhere Werte führen zu mehr und detaillierteren Vorschlägen"
-                      >
-                        <div className="w-[180px] space-y-4">
-                          <Slider
-                            value={[settings.aiLevel]}
-                            min={0}
-                            max={100}
-                            step={25}
-                            onValueChange={([value]) => handleSettingChange('aiLevel', value)}
-                            className="py-2"
-                          />
-                          <div className="flex justify-between text-xs text-muted-foreground px-1">
-                            <span>Minimal</span>
-                            <span>Moderat</span>
-                            <span>Maximal</span>
-                          </div>
-                        </div>
-                      </SettingItem>
-                      
-                      <SettingItem 
-                        label="Feedback-Tiefe" 
-                        description="Wählen Sie, wie detailliert KI-Feedback sein soll"
-                      >
-                        <div className="w-[180px]">
-                          <Select
-                            value={settings.feedbackDepth.toString()}
-                            onValueChange={(value) => handleSettingChange('feedbackDepth', parseInt(value))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Wählen Sie eine Tiefe" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1">Einfach</SelectItem>
-                              <SelectItem value="2">Standard</SelectItem>
-                              <SelectItem value="3">Detailliert</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </SettingItem>
-                      
-                      <SettingItem 
-                        label="KI-Personalisierung" 
-                        description="Erlaubt der KI, aus Ihren früheren Reflexionen zu lernen"
-                        tooltip="Verbessert die Relevanz der Vorschläge, indem Ihre früheren Reflexionen berücksichtigt werden"
-                      >
-                        <Switch
-                          checked={settings.aiPersonalization}
-                          onCheckedChange={(checked) => handleSettingChange('aiPersonalization', checked)}
-                        />
-                      </SettingItem>
-                    </>
-                  )}
-                </SettingGroup>
-                
-                {settings.aiSuggestions && (
+
+            <TabsContent value="general" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Darstellung</CardTitle>
+                  <CardDescription>
+                    Passen Sie das Erscheinungsbild der Anwendung an
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <SettingGroup
-                    title="KI-Datenschutz"
-                    description="Steuern Sie, wie Ihre Daten für KI-Funktionen verwendet werden"
-                    icon={<ShieldCheck className="h-4 w-4 text-muted-foreground" />}
+                    title="Erscheinungsbild"
+                    description="Passen Sie die visuelle Darstellung der Anwendung an"
+                    icon={<Settings className="h-4 w-4 text-muted-foreground" />}
                   >
-                    <SettingItem 
-                      label="KI-Datennutzung erlauben" 
-                      description="Erlaubt anonymisierte Datennutzung zur Verbesserung der KI-Modelle"
-                      tooltip="Ihre Daten werden nur anonymisiert verwendet und nie mit Ihrer Identität verknüpft"
+                    <SettingItem
+                      label="Farbschema"
+                      description="Wählen Sie zwischen hellem und dunklem Modus"
+                    >
+                      <Select
+                        value={settings.theme}
+                        onValueChange={(value) => handleThemeChange(value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Wählen Sie ein Farbschema" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">
+                            <div className="flex items-center gap-2">
+                              <Sun className="h-4 w-4" />
+                              <span>Hell</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="dark">
+                            <div className="flex items-center gap-2">
+                              <Moon className="h-4 w-4" />
+                              <span>Dunkel</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="system">
+                            <div className="flex items-center gap-2">
+                              <Settings className="h-4 w-4" />
+                              <span>System</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </SettingItem>
+                  </SettingGroup>
+                  
+                  <SettingGroup
+                    title="Sprache"
+                    description="Wählen Sie die Anzeigesprache für die Benutzeroberfläche"
+                    icon={<Languages className="h-4 w-4 text-muted-foreground" />}
+                  >
+                    <SettingItem label="Sprache">
+                      <Select
+                        value={settings.language}
+                        onValueChange={(value) => handleSettingChange('language', value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Wählen Sie eine Sprache" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="de">Deutsch</SelectItem>
+                          <SelectItem value="en">Englisch</SelectItem>
+                          <SelectItem value="fr">Französisch</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </SettingItem>
+                  </SettingGroup>
+                  
+                  <SettingGroup
+                    title="System"
+                    description="Verwalten Sie Systemeinstellungen"
+                    icon={<Code className="h-4 w-4 text-muted-foreground" />}
+                  >
+                    <SettingItem
+                      label="Systeminformationen anzeigen"
+                      description="Zeigt technische Informationen in der Fußzeile an"
+                      tooltip="Diese Information kann bei der Fehlersuche hilfreich sein"
                     >
                       <Switch
-                        checked={settings.aiDataUsage}
-                        onCheckedChange={(checked) => handleSettingChange('aiDataUsage', checked)}
+                        checked={settings.showSystemInfo}
+                        onCheckedChange={(checked) => handleSettingChange('showSystemInfo', checked)}
                       />
                     </SettingItem>
                   </SettingGroup>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytik & Tracking</CardTitle>
-                <CardDescription>
-                  Verwalten Sie, wie Ihre Nutzungsdaten erfasst werden
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <SettingGroup
-                  title="Analytik"
-                  description="Steuern Sie, wie Ihre Nutzungsdaten erfasst werden"
-                  icon={<BarChart className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem 
-                    label="Analytik aktivieren" 
-                    description="Hilft uns, die App zu verbessern, indem die Nutzung anonymisiert erfasst wird"
-                    tooltip="Wir erfassen anonymisierte Daten zur Nutzung der App, um die Benutzerfreundlichkeit zu verbessern"
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="notifications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Benachrichtigungen</CardTitle>
+                  <CardDescription>
+                    Verwalten Sie, wie und wann Sie benachrichtigt werden
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <SettingGroup
+                    title="Benachrichtigungen"
+                    description="Konfigurieren Sie Benachrichtigungseinstellungen"
+                    icon={<Bell className="h-4 w-4 text-muted-foreground" />}
                   >
-                    <Switch
-                      checked={settings.analytics}
-                      onCheckedChange={(checked) => handleSettingChange('analytics', checked)}
-                    />
-                  </SettingItem>
-                  
-                  <SettingItem
-                    label="Daten exportieren"
-                    description="Laden Sie Ihre persönlichen Nutzungsdaten herunter"
-                  >
-                    <Button variant="outline" size="sm" className="gap-1.5">
-                      <Download className="h-4 w-4" />
-                      Exportieren
-                    </Button>
-                  </SettingItem>
-                </SettingGroup>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="security" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sicherheit & Datenschutz</CardTitle>
-                <CardDescription>
-                  Verwalten Sie Sicherheitseinstellungen und Datenschutzoptionen
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <SettingGroup
-                  title="Sicherheit"
-                  description="Verwalten Sie Sicherheitseinstellungen für Ihr Konto"
-                  icon={<Shield className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem 
-                    label="Zwei-Faktor-Authentifizierung" 
-                    description="Erhöht die Sicherheit durch eine zusätzliche Authentifizierung"
-                  >
-                    <Switch
-                      checked={settings.twoFactor}
-                      onCheckedChange={(checked) => handleSettingChange('twoFactor', checked)}
-                    />
-                  </SettingItem>
-                </SettingGroup>
-                
-                <SettingGroup
-                  title="Datenspeicherung"
-                  description="Steuern Sie, wie lange Ihre Daten aufbewahrt werden"
-                  icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-                >
-                  <SettingItem label="Aufbewahrungszeitraum">
-                    <Select
-                      value={settings.dataRetention}
-                      onValueChange={(value) => handleSettingChange('dataRetention', value)}
+                    <SettingItem 
+                      label="Benachrichtigungen aktivieren" 
+                      description="Erhalten Sie Erinnerungen zur regelmäßigen Reflexion"
                     >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Wählen Sie einen Zeitraum" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3months">3 Monate</SelectItem>
-                        <SelectItem value="6months">6 Monate</SelectItem>
-                        <SelectItem value="1year">1 Jahr</SelectItem>
-                        <SelectItem value="forever">Unbegrenzt</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </SettingItem>
-                  
-                  <SettingItem
-                    label="Daten löschen"
-                    description="Löscht alle Ihre Daten permanent"
-                    tooltip="Diese Aktion kann nicht rückgängig gemacht werden"
+                      <Switch
+                        checked={settings.notifications}
+                        onCheckedChange={(checked) => handleSettingChange('notifications', checked)}
+                      />
+                    </SettingItem>
+                    
+                    {settings.notifications && (
+                      <>
+                        <SettingItem label="Häufigkeit">
+                          <Select
+                            value={settings.notificationFrequency}
+                            onValueChange={(value) => handleSettingChange('notificationFrequency', value)}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Wählen Sie eine Häufigkeit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="daily">Täglich</SelectItem>
+                              <SelectItem value="weekly">Wöchentlich</SelectItem>
+                              <SelectItem value="biweekly">Zweiwöchentlich</SelectItem>
+                              <SelectItem value="monthly">Monatlich</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingItem>
+                        
+                        <SettingItem 
+                          label="Uhrzeit der Benachrichtigung" 
+                          description="Wählen Sie eine bevorzugte Tageszeit für Benachrichtigungen"
+                        >
+                          <Select
+                            value={settings.notificationTime}
+                            onValueChange={(value) => handleSettingChange('notificationTime', value)}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Wählen Sie eine Zeit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="9">09:00 Uhr</SelectItem>
+                              <SelectItem value="12">12:00 Uhr</SelectItem>
+                              <SelectItem value="15">15:00 Uhr</SelectItem>
+                              <SelectItem value="18">18:00 Uhr</SelectItem>
+                              <SelectItem value="21">21:00 Uhr</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingItem>
+                      </>
+                    )}
+                  </SettingGroup>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="ai" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>KI-Funktionen</CardTitle>
+                  <CardDescription>
+                    Verwalten Sie, wie KI-Features für Ihre Reflexionen verwendet werden
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <SettingGroup
+                    title="KI-Unterstützung"
+                    description="Steuern Sie, wie KI-Funktionen Ihre Reflexionen verbessern"
+                    icon={<Brain className="h-4 w-4 text-muted-foreground" />}
                   >
-                    <Button variant="destructive" size="sm" className="gap-1.5">
-                      <Trash2 className="h-4 w-4" />
-                      Löschen
-                    </Button>
-                  </SettingItem>
-                </SettingGroup>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="about" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Über MoonReflect</CardTitle>
-                <CardDescription>
-                  Informationen über die Anwendung und das System
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="mb-6">
-                  <div className="flex items-center mb-4">
-                    <Moon className="h-8 w-8 mr-2 text-primary" />
-                    <span className="text-2xl font-bold">MoonReflect</span>
-                  </div>
-                  <p className="text-muted-foreground">
-                    Eine fortschrittliche Reflexionsplattform, die Ihnen hilft, tiefere Einsichten in Ihre Erfahrungen zu gewinnen und persönliches Wachstum zu fördern.
-                  </p>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Version</span>
-                    <span className="text-sm">1.0.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Erstellt von</span>
-                    <span className="text-sm">John & Jane Doe</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Kontakt</span>
-                    <a href="mailto:support@moonreflect.com" className="text-sm text-primary">support@moonreflect.com</a>
-                  </div>
-                </div>
-                
-                {settings.showSystemInfo && (
-                  <div className="pt-4 mt-4 border-t">
-                    <h4 className="text-sm font-medium mb-2">Systeminformationen</h4>
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Browser</span>
-                        <span>Chrome 115.0.5790.171</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Betriebssystem</span>
-                        <span>Windows 11</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Bildschirmauflösung</span>
-                        <span>1920x1080</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="flex flex-col items-start space-y-2">
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/terms">Nutzungsbedingungen</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/privacy">Datenschutz</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/help">Hilfe</Link>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    <SettingItem 
+                      label="KI-Vorschläge aktivieren" 
+                      description="Erhalten Sie Vorschläge für tiefere Reflexionen und Erkenntnisse"
+                    >
+                      <Switch
+                        checked={settings.aiSuggestions}
+                        onCheckedChange={(checked) => handleSettingChange('aiSuggestions', checked)}
+                      />
+                    </SettingItem>
+                    
+                    {settings.aiSuggestions && (
+                      <>
+                        <SettingItem 
+                          label="KI-Intensität" 
+                          description="Stellt ein, wie aktiv die KI Vorschläge machen soll"
+                          tooltip="Höhere Werte führen zu mehr und detaillierteren Vorschlägen"
+                        >
+                          <div className="w-[180px] space-y-4">
+                            <Slider
+                              value={[settings.aiLevel]}
+                              min={0}
+                              max={100}
+                              step={25}
+                              onValueChange={([value]) => handleSettingChange('aiLevel', value)}
+                              className="py-2"
+                            />
+                            <div className="flex justify-between text-xs text-muted-foreground px-1">
+                              <span>Minimal</span>
+                              <span>Moderat</span>
+                              <span>Maximal</span>
+                            </div>
+                          </div>
+                        </SettingItem>
+                        
+                        <SettingItem 
+                          label="KI-Feedback Detailgrad"
+                          description="Wählen Sie, wie detailliert das KI-Feedback sein soll"
+                        >
+                          <Select
+                            value={settings.feedbackDepth}
+                            onValueChange={(value) => handleSettingChange('feedbackDepth', value)}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Standard" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="basic">Einfach</SelectItem>
+                              <SelectItem value="standard">Standard</SelectItem>
+                              <SelectItem value="detailed">Detailliert</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingItem>
+                        
+                        <SettingItem 
+                          label="KI-Personalisierung" 
+                          description="Erlaubt der KI, aus Ihren früheren Reflexionen zu lernen"
+                          tooltip="Verbessert die Relevanz der Vorschläge, indem Ihre früheren Reflexionen berücksichtigt werden"
+                        >
+                          <Switch
+                            checked={settings.aiPersonalization}
+                            onCheckedChange={(checked) => handleSettingChange('aiPersonalization', checked)}
+                          />
+                        </SettingItem>
+                      </>
+                    )}
+                  </SettingGroup>
+                  
+                  {settings.aiSuggestions && (
+                    <SettingGroup
+                      title="KI-Datenschutz"
+                      description="Steuern Sie, wie Ihre Daten für KI-Funktionen verwendet werden"
+                      icon={<ShieldCheck className="h-4 w-4 text-muted-foreground" />}
+                    >
+                      <SettingItem 
+                        label="KI-Datennutzung erlauben" 
+                        description="Erlaubt anonymisierte Datennutzung zur Verbesserung der KI-Modelle"
+                        tooltip="Ihre Daten werden nur anonymisiert verwendet und nie mit Ihrer Identität verknüpft"
+                      >
+                        <Switch
+                          checked={settings.aiDataUsage}
+                          onCheckedChange={(checked) => handleSettingChange('aiDataUsage', checked)}
+                        />
+                      </SettingItem>
+                    </SettingGroup>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="security" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sicherheit & Datenschutz</CardTitle>
+                  <CardDescription>
+                    Verwalten Sie Sicherheitseinstellungen und Datenschutzoptionen
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <SettingGroup
+                    title="Sicherheit"
+                    description="Verwalten Sie Sicherheitseinstellungen für Ihr Konto"
+                    icon={<Shield className="h-4 w-4 text-muted-foreground" />}
+                  >
+                    <SettingItem 
+                      label="Zwei-Faktor-Authentifizierung" 
+                      description="Erhöht die Sicherheit durch eine zusätzliche Authentifizierung"
+                    >
+                      <Switch
+                        checked={settings.twoFactor}
+                        onCheckedChange={(checked) => handleSettingChange('twoFactor', checked)}
+                      />
+                    </SettingItem>
+                  </SettingGroup>
+                  
+                  <SettingGroup
+                    title="Datenspeicherung"
+                    description="Steuern Sie, wie lange Ihre Daten aufbewahrt werden"
+                    icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+                  >
+                    <SettingItem label="Aufbewahrungszeitraum">
+                      <Select
+                        value={settings.dataRetention}
+                        onValueChange={(value) => handleSettingChange('dataRetention', value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Wählen Sie einen Zeitraum" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3months">3 Monate</SelectItem>
+                          <SelectItem value="6months">6 Monate</SelectItem>
+                          <SelectItem value="1year">1 Jahr</SelectItem>
+                          <SelectItem value="forever">Unbegrenzt</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </SettingItem>
+                    
+                    <SettingItem
+                      label="Daten löschen"
+                      description="Löscht alle Ihre Daten permanent"
+                      tooltip="Diese Aktion kann nicht rückgängig gemacht werden"
+                    >
+                      <Button variant="destructive" size="sm" className="gap-1.5">
+                        <Trash2 className="h-4 w-4" />
+                        Löschen
+                      </Button>
+                    </SettingItem>
+                  </SettingGroup>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
         
         <Toaster />
       </div>
