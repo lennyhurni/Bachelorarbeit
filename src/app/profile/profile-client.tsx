@@ -72,59 +72,68 @@ export default function ProfileClient() {
           if (userError.code === 'PGRST116') {
             console.log('Creating new profile for user:', session.user.id)
             
-            // Create a basic profile for the user
-            const { data: newUserData, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: session.user.id,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name || '',
-                avatar_url: session.user.user_metadata?.avatar_url || '',
-                updated_at: new Date().toISOString()
-              })
-              .select()
-            
-            if (createError) {
-              console.error('Error creating user profile:', createError)
-              showError("profile", { 
-                title: "Fehler beim Erstellen", 
-                description: "Dein Profil konnte nicht erstellt werden." 
-              })
-              return
-            }
-            
-            // If the profile was created successfully, but no data was returned,
-            // fetch the newly created profile
-            let profileData = newUserData?.[0]
-            
-            if (!profileData) {
-              const { data: fetchedProfile, error: fetchError } = await supabase
+            try {
+              // Create a basic profile for the user
+              const { data: newUserData, error: createError } = await supabase
                 .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single()
-                
-              if (fetchError) {
-                console.error('Error fetching newly created profile:', fetchError)
+                .insert({
+                  id: session.user.id,
+                  email: session.user.email,
+                  full_name: session.user.user_metadata?.full_name || '',
+                  avatar_url: session.user.user_metadata?.avatar_url || '',
+                  updated_at: new Date().toISOString()
+                })
+                .select()
+              
+              if (createError) {
+                console.error('Error creating user profile:', JSON.stringify(createError, null, 2))
                 showError("profile", { 
-                  title: "Fehler beim Laden", 
-                  description: "Dein neues Profil konnte nicht geladen werden." 
+                  title: "Fehler beim Erstellen", 
+                  description: `Dein Profil konnte nicht erstellt werden: ${createError.message || 'Unbekannter Fehler'}` 
                 })
                 return
               }
               
-              profileData = fetchedProfile
+              // If the profile was created successfully, but no data was returned,
+              // fetch the newly created profile
+              let profileData = newUserData?.[0]
+              
+              if (!profileData) {
+                const { data: fetchedProfile, error: fetchError } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single()
+                  
+                if (fetchError) {
+                  console.error('Error fetching newly created profile:', JSON.stringify(fetchError, null, 2))
+                  showError("profile", { 
+                    title: "Fehler beim Laden", 
+                    description: `Dein neues Profil konnte nicht geladen werden: ${fetchError.message || 'Unbekannter Fehler'}` 
+                  })
+                  return
+                }
+                
+                profileData = fetchedProfile
+              }
+              
+              // Use the newly created profile
+              const newProfile = {
+                ...profileData,
+                email: session.user.email || ''
+              }
+              
+              setUser(newProfile)
+              setFormValues(newProfile)
+              return
+            } catch (err) {
+              console.error('Unexpected error during profile creation/fetching:', err)
+              showError("profile", { 
+                title: "Unerwarteter Fehler", 
+                description: "Ein unerwarteter Fehler ist aufgetreten." 
+              })
+              return
             }
-            
-            // Use the newly created profile
-            const newProfile = {
-              ...profileData,
-              email: session.user.email || ''
-            }
-            
-            setUser(newProfile)
-            setFormValues(newProfile)
-            return
           }
           
           console.error('Error loading user profile:', userError)
@@ -177,23 +186,62 @@ export default function ProfileClient() {
       }
       
       const file = event.target.files[0]
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        showError("avatar", {
+          title: "Datei zu groß",
+          description: "Bitte wähle ein Bild kleiner als 2MB."
+        })
+        return
+      }
+
+      // Validate file type
+      const fileType = file.type.split('/')[0]
+      if (fileType !== 'image') {
+        showError("avatar", {
+          title: "Falscher Dateityp",
+          description: "Bitte wähle nur Bilddateien aus."
+        })
+        return
+      }
+
       const fileExt = file.name.split('.').pop()
       const fileName = `${user.id}-${Date.now()}.${fileExt}`
       
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file)
+        .upload(fileName, file, {
+          upsert: true,
+          cacheControl: '3600'
+        })
       
       if (uploadError) {
+        if (uploadError.message.includes('storage')) {
+          showError("avatar", {
+            title: "Speicherfehler",
+            description: "Es gab ein Problem beim Speichern deines Bildes. Bitte versuche es erneut."
+          })
+        } else {
+          showError("avatar", {
+            title: "Upload fehlgeschlagen",
+            description: uploadError.message
+          })
+        }
         throw uploadError
       }
       
-      // Update user profile with new avatar URL
+      // Get public URL for storing in the profile
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+      
+      // Update user profile with new avatar URL - store the FULL publicUrl
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          avatar_url: fileName,
+          avatar_url: publicUrl, // Store the full public URL instead of just the filename
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id)
@@ -202,12 +250,8 @@ export default function ProfileClient() {
         throw updateError
       }
       
-      // Get public URL for immediate UI update
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName)
-      
-      const updatedUser = { ...user, avatar_url: fileName }
+      // Update local state
+      const updatedUser = { ...user, avatar_url: publicUrl }
       setUser(updatedUser)
       setFormValues(updatedUser)
       
@@ -324,17 +368,7 @@ export default function ProfileClient() {
                 <div className="flex flex-col items-center gap-3">
                   <Avatar className="h-28 w-28 border-2 border-muted">
                     <AvatarImage 
-                      src={user?.avatar_url ? 
-                        (() => {
-                          try {
-                            return supabase.storage.from('avatars').getPublicUrl(user.avatar_url).data.publicUrl
-                          } catch (error) {
-                            console.error('Error getting avatar URL:', error)
-                            return undefined
-                          }
-                        })() 
-                        : undefined
-                      } 
+                      src={user?.avatar_url || undefined}
                     />
                     <AvatarFallback className="text-xl bg-primary/10 text-primary">{user?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                   </Avatar>

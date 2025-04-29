@@ -14,6 +14,7 @@ const PROTECTED_PATHS = [
   '/help',
 ]
 
+// Check URL against protected paths patterns
 function isProtected(pathname: string) {
   return PROTECTED_PATHS.some(
     (base) => pathname === base || pathname.startsWith(`${base}/`),
@@ -62,6 +63,36 @@ export async function middleware(request: NextRequest) {
   /* Weiterleitungen                                        */
   /* ------------------------------------------------------ */
 
+  // Handle session expiration - check if it's about to expire within the next 5 minutes
+  // and try to refresh the session if possible
+  if (session && session.expires_at) {
+    const expiresAt = session.expires_at * 1000 // convert to milliseconds
+    const now = Date.now()
+    const fiveMinutesInMs = 5 * 60 * 1000
+    
+    // If token is about to expire in less than 5 minutes, try to refresh it
+    if (expiresAt - now < fiveMinutesInMs && expiresAt > now) {
+      try {
+        // Attempt to refresh the session
+        const { data, error } = await supabase.auth.refreshSession()
+        if (error) {
+          console.error('Failed to refresh session:', error)
+        }
+      } catch (err) {
+        console.error('Error refreshing session:', err)
+      }
+    }
+    
+    // If token is already expired, redirect to login
+    if (expiresAt < now && isProtected(pathname)) {
+      console.log(`Session expired. Redirecting from ${pathname} to login`)
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirectTo', pathname)
+      loginUrl.searchParams.set('expired', 'true')
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   // 1. Geschützte Route ohne Session → Login mit Redirect
   if (isProtected(pathname) && !session) {
     console.log(`Protected path accessed without session: ${pathname}`)
@@ -71,7 +102,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2. User ist schon eingeloggt und ruft /login auf → Dashboard
-  if (pathname === '/login' && session) {
+  if ((pathname === '/login' || pathname === '/register') && session) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

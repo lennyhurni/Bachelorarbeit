@@ -39,7 +39,31 @@ export async function updateUserSetting<K extends keyof UserSettings>(
       .single()
     
     if (fetchError) {
-      console.error('Error fetching user settings:', fetchError)
+      console.error('Error fetching user settings:', JSON.stringify(fetchError, null, 2))
+      
+      // If no profile exists yet, create one with default settings
+      if (fetchError.code === 'PGRST116') {
+        const newSettings = {
+          ...defaultSettings,
+          [key]: value
+        }
+        
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            settings: newSettings,
+            updated_at: new Date().toISOString()
+          })
+        
+        if (createError) {
+          console.error('Error creating profile with settings:', JSON.stringify(createError, null, 2))
+          return false
+        }
+        
+        return true
+      }
+      
       return false
     }
     
@@ -57,7 +81,7 @@ export async function updateUserSetting<K extends keyof UserSettings>(
       .eq('id', userId)
     
     if (updateError) {
-      console.error('Error updating user settings:', updateError)
+      console.error('Error updating user settings:', JSON.stringify(updateError, null, 2))
       return false
     }
     
@@ -89,7 +113,31 @@ export async function updateUserSettings(
       .single()
     
     if (fetchError) {
-      console.error('Error fetching user settings:', fetchError)
+      console.error('Error fetching user settings:', JSON.stringify(fetchError, null, 2))
+      
+      // If no profile exists, create one with the provided settings
+      if (fetchError.code === 'PGRST116') {
+        const newSettings = {
+          ...defaultSettings,
+          ...settings
+        }
+        
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            settings: newSettings,
+            updated_at: new Date().toISOString()
+          })
+        
+        if (createError) {
+          console.error('Error creating profile with settings:', JSON.stringify(createError, null, 2))
+          return false
+        }
+        
+        return true
+      }
+      
       return false
     }
     
@@ -107,7 +155,7 @@ export async function updateUserSettings(
       .eq('id', userId)
     
     if (updateError) {
-      console.error('Error updating user settings:', updateError)
+      console.error('Error updating user settings:', JSON.stringify(updateError, null, 2))
       return false
     }
     
@@ -127,6 +175,43 @@ export async function getUserSettings(userId: string): Promise<UserSettings> {
   const supabase = createClientBrowser()
   
   try {
+    // First check if the profile exists
+    const { data: profileExists, error: checkError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle()
+      
+    // If no profile exists, create one with default settings
+    if (!profileExists) {
+      try {
+        // Attempt to create a profile with default settings
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            settings: defaultSettings,
+            updated_at: new Date().toISOString()
+          })
+          
+        if (createError) {
+          if (createError.code === '23505') {
+            // Duplicate key error - someone else created the profile
+            console.log('Profile was created in parallel, continuing with defaults')
+          } else {
+            console.error('Error creating profile for settings in getUserSettings:', 
+              JSON.stringify(createError, null, 2))
+          }
+        } else {
+          // Successfully created profile with default settings
+          return defaultSettings
+        }
+      } catch (err) {
+        console.error('Unexpected error creating profile in getUserSettings:', err)
+      }
+    }
+    
+    // Try to get the settings
     const { data, error } = await supabase
       .from('profiles')
       .select('settings')
@@ -134,7 +219,8 @@ export async function getUserSettings(userId: string): Promise<UserSettings> {
       .single()
     
     if (error) {
-      console.error('Error fetching user settings:', error)
+      console.error('Error fetching user settings in getUserSettings:', 
+        JSON.stringify(error, null, 2))
       return defaultSettings
     }
     

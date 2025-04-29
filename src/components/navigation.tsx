@@ -8,7 +8,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
-import { Brain, User } from "lucide-react"
+import { Brain } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import LogoutButton from "./LogoutButton"
@@ -58,10 +58,8 @@ export function Navigation() {
           if (!userError && userData) {
             setUserName(userData.username || userData.full_name || "")
             if (userData.avatar_url) {
-              const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(userData.avatar_url)
-              setUserAvatar(publicUrl)
+              // Use the avatar_url directly as it should now contain the full public URL
+              setUserAvatar(userData.avatar_url)
             }
           }
         } else {
@@ -109,10 +107,8 @@ export function Navigation() {
         if (!userError && userData) {
           setUserName(userData.username || userData.full_name || "")
           if (userData.avatar_url) {
-            const { data: { publicUrl } } = supabase.storage
-              .from('avatars')
-              .getPublicUrl(userData.avatar_url)
-            setUserAvatar(publicUrl)
+            // Use the avatar_url directly as it should now contain the full public URL
+            setUserAvatar(userData.avatar_url)
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -128,6 +124,9 @@ export function Navigation() {
 
   // Get user's initial for avatar
   const getInitial = () => {
+    if (userName && userName.length > 0) {
+      return userName.charAt(0).toUpperCase()
+    }
     if (userEmail && userEmail.length > 0) {
       return userEmail.charAt(0).toUpperCase()
     }
@@ -135,42 +134,47 @@ export function Navigation() {
   }
 
   return (
-    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
-        <NavigationMenu className="flex-1">
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className={cn("group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent")}> 
-                  <div className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
-                    <span className="font-bold">Reflectify</span>
-                  </div>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+    <nav className="w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+      <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            <span className="font-semibold text-sm text-gray-900 dark:text-white">Reflectify</span>
+          </Link>
+        </div>
         
-        <div className="ml-auto flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {isLoggedIn ? (
             <>
-              <Link 
-                href="/profile" 
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={userAvatar} />
-                  <AvatarFallback>{getInitial()}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm hidden md:inline">{userName || userEmail || "Profile"}</span>
-              </Link>
+              <div className="flex items-center">
+                <Link href="/profile" className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {userName || userEmail}
+                  </span>
+                  <Avatar className="h-7 w-7 border border-gray-200 dark:border-gray-800">
+                    <AvatarImage src={userAvatar} alt={userName || userEmail || "User"} />
+                    <AvatarFallback className="bg-primary/10 text-primary-foreground">
+                      {getInitial()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              </div>
               <LogoutButton />
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm px-3 py-2 rounded-md hover:bg-accent">Login</Link>
-              <Link href="/register" className="text-sm px-3 py-2 rounded-md bg-primary text-white">Register</Link>
+              <Link 
+                href="/login" 
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900"
+              >
+                Login
+              </Link>
+              <Link 
+                href="/register" 
+                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary/90 dark:text-gray-900"
+              >
+                Register
+              </Link>
             </>
           )}
         </div>

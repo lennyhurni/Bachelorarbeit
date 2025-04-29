@@ -47,7 +47,7 @@ export default function RegisterForm() {
     try {
       // Sign up the user
       const supabase = createClientBrowser()
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -63,6 +63,9 @@ export default function RegisterForm() {
         setLoading(false)
         return
       }
+
+      // Profilerstellung erfolgt jetzt nicht mehr hier, sondern wird 
+      // stattdessen bei der ersten Anmeldung durchgeführt
 
       // Redirect to confirmation page or dashboard
       router.push('/register/confirmation')

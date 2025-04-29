@@ -21,6 +21,8 @@ function LoginFormContent() {
   const redirectTo = searchParams.get('redirectTo') || '/dashboard'
   // Check if email was confirmed
   const emailConfirmed = searchParams.get('email_confirmed') === 'true'
+  // Check if session expired
+  const sessionExpired = searchParams.get('expired') === 'true'
 
   // Check if the user is already logged in
   useEffect(() => {
@@ -85,6 +87,13 @@ function LoginFormContent() {
         <div className="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-4 rounded-md mb-4 text-sm border border-green-200 dark:border-green-800">
           <p className="font-medium">Ihre E-Mail-Adresse wurde erfolgreich bestätigt!</p>
           <p>Sie können sich jetzt mit Ihren Anmeldedaten einloggen.</p>
+        </div>
+      )}
+      
+      {sessionExpired && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 p-4 rounded-md mb-4 text-sm border border-yellow-200 dark:border-yellow-800">
+          <p className="font-medium">Ihre Sitzung ist abgelaufen.</p>
+          <p>Bitte melden Sie sich erneut an, um fortzufahren.</p>
         </div>
       )}
       

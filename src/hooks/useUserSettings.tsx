@@ -2,13 +2,53 @@ import { useState, useEffect } from "react"
 import { createClientBrowser } from "@/utils/supabase/client"
 import { UserSettings, defaultSettings, updateUserSetting, updateUserSettings } from "@/utils/user-settings"
 import { useToast } from "@/components/ui/use-toast"
+import { ensureUserProfile } from "@/utils/profile-manager"
 
 export function useUserSettings() {
   const [userId, setUserId] = useState<string | null>(null)
   const [settings, setSettings] = useState<UserSettings>(defaultSettings)
   const [loading, setLoading] = useState(true)
+  const [retryCount, setRetryCount] = useState(0)
   const supabase = createClientBrowser()
   const { toast } = useToast()
+
+  // Helper function to retry loading profile with a delay
+  const retryWithDelay = async (session: any, retries: number = 3, delay: number = 500) => {
+    if (retries <= 0) return null;
+    
+    try {
+      // Verwende die zentrale Profilverwaltung
+      await ensureUserProfile(
+        session.user.id, 
+        session.user.email, 
+        session.user.user_metadata?.full_name
+      )
+      
+      // Get user profile with settings
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('settings')
+        .eq('id', session.user.id)
+        .single()
+      
+      if (userError) {
+        if (userError.code === 'PGRST116') {
+          console.log(`Retry ${retryCount}: Profil noch nicht verfügbar, warte ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          setRetryCount(prev => prev + 1)
+          return retryWithDelay(session, retries - 1, delay * 1.5)
+        } else {
+          console.error('Error fetching user settings:', JSON.stringify(userError, null, 2))
+          return null
+        }
+      }
+      
+      return userData
+    } catch (error) {
+      console.error('Error retrying profile load:', JSON.stringify(error, null, 2))
+      return null
+    }
+  }
 
   // Load user settings on mount
   useEffect(() => {
@@ -27,6 +67,13 @@ export function useUserSettings() {
         
         setUserId(session.user.id)
         
+        // Verwende die zentrale Profilverwaltung
+        await ensureUserProfile(
+          session.user.id, 
+          session.user.email, 
+          session.user.user_metadata?.full_name
+        )
+        
         // Get user profile with settings
         const { data: userData, error: userError } = await supabase
           .from('profiles')
@@ -35,19 +82,30 @@ export function useUserSettings() {
           .single()
         
         if (userError) {
-          console.error('Error fetching user settings:', userError)
+          console.error('Error fetching user settings:', JSON.stringify(userError, null, 2))
+          
+          // If no data was found, retry with delay
+          if (userError.code === 'PGRST116' && retryCount < 3) {
+            console.log('No profile data returned (PGRST116), attempting retry...')
+            const retryData = await retryWithDelay(session, 3)
+            if (retryData?.settings) {
+              setSettings(retryData.settings)
+            } else {
+              console.log('Retries exhausted or still no data, using default settings')
+            }
+          }
         } else if (userData?.settings) {
           setSettings(userData.settings)
         }
       } catch (error) {
-        console.error('Error loading user settings:', error)
+        console.error('Error loading user settings:', JSON.stringify(error, null, 2))
       } finally {
         setLoading(false)
       }
     }
     
     loadSettings()
-  }, [supabase])
+  }, [supabase, toast, retryCount])
 
   // Function to update a single setting
   const updateSetting = async <K extends keyof UserSettings>(
