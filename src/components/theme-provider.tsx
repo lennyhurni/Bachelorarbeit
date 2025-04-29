@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext"
 
 interface ThemeProviderProps {
   children: React.ReactNode
@@ -9,15 +9,11 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  // Die alte ThemeProvider-Implementierung wird durch unsere neue ersetzt
+  // Die alten props werden ignoriert, aber akzeptiert für Abwärtskompatibilität
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <CustomThemeProvider>
       {children}
-    </NextThemesProvider>
+    </CustomThemeProvider>
   )
 } 

@@ -19,6 +19,7 @@ import { useTheme } from "next-themes"
 import { showSuccess, showError } from "@/utils/feedback"
 import { Toaster } from "@/components/ui/toaster"
 import RequireAuth from "@/components/RequireAuth"
+import { useSession } from "@/contexts/SessionContext"
 
 // Type definition for user data
 interface UserProfile {
@@ -43,6 +44,7 @@ export default function ProfileClient() {
   
   // Use theme hook only for avatar display purposes
   const { theme, setTheme } = useTheme()
+  const { refreshSession } = useSession()
 
   useEffect(() => {
     async function loadUserData() {
@@ -256,6 +258,9 @@ export default function ProfileClient() {
       setFormValues(updatedUser)
       
       showSuccess("avatar")
+      
+      // SessionContext aktualisieren, damit die Navigation das neue Avatar anzeigt
+      await refreshSession()
     } catch (error) {
       console.error('Error uploading avatar:', error)
       showError("avatar")
@@ -296,6 +301,9 @@ export default function ProfileClient() {
       })
       
       showSuccess("profile")
+      
+      // SessionContext aktualisieren, damit die Navigation die neuen Profildaten anzeigt
+      await refreshSession()
     } catch (error) {
       console.error('Error saving profile data:', error)
       showError("profile")

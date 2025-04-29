@@ -12,8 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Link from "next/link"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { createClientBrowser } from "@/utils/supabase/client"
 import {
   Settings as SettingsIcon,
@@ -53,6 +52,9 @@ import { Toaster } from "@/components/ui/toaster"
 import RequireAuth from "@/components/RequireAuth"
 import { showSuccess, showError } from "@/utils/feedback"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTheme } from "@/contexts/ThemeContext"
+import { useSession } from "@/contexts/SessionContext"
+import React from "react"
 
 interface UserSettings {
   theme: string
@@ -147,7 +149,8 @@ const SettingItem = ({
 }
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, changeTheme } = useTheme()
+  const { user: sessionUser } = useSession()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -172,13 +175,18 @@ export default function SettingsPage() {
     showSystemInfo: true
   }
   
+  // Use a ref to track initialization state to prevent unwanted theme changes
+  const isInitialized = React.useRef(false);
+  
   const [settings, setSettings] = useState<UserSettings>(defaultSettings)
   const [savedSettings, setSavedSettings] = useState<UserSettings | null>(null)
 
-  // Load settings from Supabase on mount
+  // Load settings from Supabase on mount - avoid re-running this effect
   useEffect(() => {
     async function loadUserSettings() {
       try {
+        if (isInitialized.current) return; // Only run once
+        
         setLoading(true)
         
         const { data: { session } } = await supabase.auth.getSession()
@@ -213,15 +221,17 @@ export default function SettingsPage() {
           setSettings(mergedSettings)
           setSavedSettings(mergedSettings)
           
-          // Sync theme with system
+          // Sync theme with system - only during initialization
           if (mergedSettings.theme) {
-            setTheme(mergedSettings.theme)
+            changeTheme(mergedSettings.theme as "light" | "dark")
           }
         } else {
           // If no settings exist yet, use defaults
           setSettings(defaultSettings)
           setSavedSettings(defaultSettings)
         }
+        
+        isInitialized.current = true;
       } catch (error) {
         console.error('Error loading settings:', error)
       } finally {
@@ -230,47 +240,30 @@ export default function SettingsPage() {
     }
     
     loadUserSettings()
-  }, [supabase, setTheme])
+    // Only include supabase dependency to avoid infinite loops
+  }, [supabase, changeTheme])
 
-  // Sync theme with settings when theme changes externally
-  useEffect(() => {
-    if (theme) {
-      setSettings(prev => ({ ...prev, theme }))
+  // Optimize the theme change handler
+  const handleThemeChange = React.useCallback((value: string) => {
+    // Only update theme if it actually changed
+    if (value !== theme) {
+      changeTheme(value as "light" | "dark")
     }
-  }, [theme])
-
-  const handleThemeChange = (value: string) => {
-    // Set the theme immediately for UI responsiveness
-    setTheme(value)
     
-    // Update local settings state
-    setSettings(prev => ({ ...prev, theme: value }))
-    
-    // If user is logged in, save to backend (but don't show toast here)
-    if (userId) {
-      supabase
-        .from('profiles')
-        .update({
-          settings: { ...settings, theme: value }
-        })
-        .eq('id', userId)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error saving theme setting:', error)
-          } else {
-            // Successfully saved to backend
-            localStorage.setItem("userTheme", value)
-          }
-        })
-    }
-  }
+    // Update settings separately
+    setSettings(prev => {
+      // Only update if value is different to avoid unnecessary rerenders
+      if (prev.theme === value) return prev;
+      return { ...prev, theme: value };
+    })
+  }, [changeTheme, theme]);
 
-  const handleSettingChange = <K extends keyof UserSettings>(
+  const handleSettingChange = React.useCallback(<K extends keyof UserSettings>(
     key: K,
     value: UserSettings[K]
   ) => {
     setSettings(prev => ({ ...prev, [key]: value }))
-  }
+  }, []);
 
   const handleSave = async () => {
     if (!userId) {
@@ -337,7 +330,7 @@ export default function SettingsPage() {
         // Update local state
         setSettings(defaultSettings)
         setSavedSettings(defaultSettings)
-        setTheme(defaultSettings.theme)
+        changeTheme(defaultSettings.theme as "light" | "dark")
         
         // Clear localStorage
         localStorage.removeItem("userSettings")

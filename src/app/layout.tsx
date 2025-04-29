@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import AppFrame from "@/components/AppFrame";
+import { SessionProvider } from "@/contexts/SessionContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,17 +43,14 @@ export default async function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className} style={{ overflow: 'auto', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {/* Use the AppFrame for all content - it will conditionally render navigation and sidebar */}
-          <AppFrame>
-            {children}
-          </AppFrame>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider>
+            {/* Use the AppFrame for all content - it will conditionally render navigation and sidebar */}
+            <AppFrame>
+              {children}
+            </AppFrame>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

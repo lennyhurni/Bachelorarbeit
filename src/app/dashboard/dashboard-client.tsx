@@ -27,6 +27,8 @@ import Link from "next/link"
 import { UserSettings as UserSettingsType } from "@/utils/user-settings"
 import { useUserSettings } from "@/hooks/useUserSettings"
 import { ensureUserProfile } from "@/utils/profile-manager"
+import { useSession } from "@/contexts/SessionContext"
+import { useTheme } from "@/contexts/ThemeContext"
 
 // Typdefinitionen
 interface UserProfile {
@@ -67,113 +69,70 @@ export default function DashboardClient() {
   const supabase = createClientBrowser()
   const router = useRouter()
   
+  // Verwende die Session aus dem Kontext
+  const { user: sessionUser, loading: sessionLoading } = useSession()
+  
   // Use the settings hook
   const { settings, updateSetting } = useUserSettings()
+  const { theme } = useTheme()
 
   useEffect(() => {
-    async function loadUserData() {
+    async function loadData() {
       try {
         setLoading(true)
         
-        // Session abrufen und ggf. aktualisieren
-        const { data } = await supabase.auth.getSession()
-        const currentSession = data.session
+        // Wenn der Benutzer nicht angemeldet ist oder noch geladen wird, abbrechen
+        if (sessionLoading || !sessionUser?.id) {
+          return
+        }
         
-        // If we have a session, we can proceed with loading data
-        // Middleware will handle redirects if not authenticated
-        if (currentSession) {
-          // Zentrale Profilverwaltung nutzen
-          const profileResult = await ensureUserProfile(
-            currentSession.user.id, 
-            currentSession.user.email, 
-            currentSession.user.user_metadata?.full_name
-          );
-          
-          let userData = null;
-          
-          // Benutzerprofil abrufen - nachdem sichergestellt wurde, dass es existiert
-          try {
-            const { data: fetchedUserData, error: userError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', currentSession.user.id)
-              .single()
-              
-            if (userError) {
-              if (userError.code === 'PGRST116') {
-                console.log('Profil noch nicht verfügbar für Abfrage, verwende Session-Daten')
-                // Wir nutzen die von ensureUserProfile zurückgegebenen Daten, falls verfügbar
-                userData = profileResult;
-              } else {
-                console.error('Fehler beim Abrufen des Benutzerprofils:', JSON.stringify(userError, null, 2))
-              }
-            } else {
-              userData = fetchedUserData;
-            }
-          } catch (error) {
-            console.error('Unerwarteter Fehler beim Laden des Profils:', JSON.stringify(error, null, 2))
+        // Reflexionen laden
+        try {
+          const { data: reflectionsData, error: reflectionsError } = await supabase
+            .from('reflections')
+            .select('*')
+            .eq('user_id', sessionUser.id)
+            .order('created_at', { ascending: false })
+            .limit(5)
+
+          if (reflectionsError) {
+            console.error('Fehler beim Abrufen der Reflexionen:', JSON.stringify(reflectionsError, null, 2))
+          } else {
+            setReflections(reflectionsData || [])
           }
-          
-          // Benutzerdaten setzen - auch wenn kein vollständiges Profil gefunden wurde, verwenden wir die Session-Daten
-          setUser({
-            id: currentSession.user.id,
-            email: currentSession.user.email || '',
-            full_name: userData?.full_name || currentSession.user.user_metadata?.full_name || '',
-            avatar_url: userData?.avatar_url || currentSession.user.user_metadata?.avatar_url || '',
-            settings: userData?.settings
-          })
+        } catch (error) {
+          console.error('Unerwarteter Fehler beim Laden der Reflexionen:', JSON.stringify(error, null, 2))
+          setReflections([])
+        }
 
-          // Reflexionen laden würde fehlschlagen, wenn das Profil nicht existiert
-          // Versuche Reflexionen zu laden, verarbeite aber Fehler entsprechend
-          try {
-            // Reflexionen abrufen (neueste 5)
-            const { data: reflectionsData, error: reflectionsError } = await supabase
-              .from('reflections')
-              .select('*')
-              .eq('user_id', currentSession.user.id)
-              .order('created_at', { ascending: false })
-              .limit(5)
+        // Lernziele laden
+        try {
+          const { data: goalsData, error: goalsError } = await supabase
+            .from('learning_goals')
+            .select('*')
+            .eq('user_id', sessionUser.id)
+            .eq('is_completed', false)
+            .order('target_date', { ascending: true })
+            .limit(5)
 
-            if (reflectionsError) {
-              console.error('Fehler beim Abrufen der Reflexionen:', JSON.stringify(reflectionsError, null, 2))
-            } else {
-              setReflections(reflectionsData || [])
-            }
-          } catch (error) {
-            console.error('Unerwarteter Fehler beim Laden der Reflexionen:', JSON.stringify(error, null, 2))
-            setReflections([])
+          if (goalsError) {
+            console.error('Fehler beim Abrufen der Lernziele:', JSON.stringify(goalsError, null, 2))
+          } else {
+            setLearningGoals(goalsData || [])
           }
-
-          // Lernziele laden - mit ähnlicher Fehlerbehandlung
-          try {
-            // Lernziele abrufen (aktive)
-            const { data: goalsData, error: goalsError } = await supabase
-              .from('learning_goals')
-              .select('*')
-              .eq('user_id', currentSession.user.id)
-              .eq('is_completed', false)
-              .order('target_date', { ascending: true })
-              .limit(5)
-
-            if (goalsError) {
-              console.error('Fehler beim Abrufen der Lernziele:', JSON.stringify(goalsError, null, 2))
-            } else {
-              setLearningGoals(goalsData || [])
-            }
-          } catch (error) {
-            console.error('Unerwarteter Fehler beim Laden der Lernziele:', JSON.stringify(error, null, 2))
-            setLearningGoals([])
-          }
+        } catch (error) {
+          console.error('Unerwarteter Fehler beim Laden der Lernziele:', JSON.stringify(error, null, 2))
+          setLearningGoals([])
         }
       } catch (error) {
-        console.error('Fehler beim Laden der Benutzerdaten:', JSON.stringify(error, null, 2))
+        console.error('Fehler beim Laden der Daten:', JSON.stringify(error, null, 2))
       } finally {
         setLoading(false)
       }
     }
     
-    loadUserData()
-  }, [supabase])
+    loadData()
+  }, [supabase, sessionUser, sessionLoading])
 
   // Handle feedback depth change with the hook
   const handleFeedbackDepthChange = (value: string) => {
@@ -217,7 +176,8 @@ export default function DashboardClient() {
     return { total, completed, inProgress, avgProgress }
   }
 
-  if (loading) {
+  // Rendering für Ladestaaten
+  if (sessionLoading || loading) {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
