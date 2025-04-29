@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "next-themes"
 import { showSuccess, showError } from "@/utils/feedback"
 import { Toaster } from "@/components/ui/toaster"
+import RequireAuth from "@/components/RequireAuth"
 
 // Type definition for user data
 interface UserProfile {
@@ -53,7 +54,8 @@ export default function ProfileClient() {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session) {
-          setLoading(false)
+          // Don't show an error message here, just redirect to login
+          router.push('/login')
           return
         }
         
@@ -65,6 +67,66 @@ export default function ProfileClient() {
           .single()
         
         if (userError) {
+          // Check if this is a "not found" error, which might happen if the profile
+          // hasn't been created yet after authentication
+          if (userError.code === 'PGRST116') {
+            console.log('Creating new profile for user:', session.user.id)
+            
+            // Create a basic profile for the user
+            const { data: newUserData, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: session.user.id,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name || '',
+                avatar_url: session.user.user_metadata?.avatar_url || '',
+                updated_at: new Date().toISOString()
+              })
+              .select()
+            
+            if (createError) {
+              console.error('Error creating user profile:', createError)
+              showError("profile", { 
+                title: "Fehler beim Erstellen", 
+                description: "Dein Profil konnte nicht erstellt werden." 
+              })
+              return
+            }
+            
+            // If the profile was created successfully, but no data was returned,
+            // fetch the newly created profile
+            let profileData = newUserData?.[0]
+            
+            if (!profileData) {
+              const { data: fetchedProfile, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single()
+                
+              if (fetchError) {
+                console.error('Error fetching newly created profile:', fetchError)
+                showError("profile", { 
+                  title: "Fehler beim Laden", 
+                  description: "Dein neues Profil konnte nicht geladen werden." 
+                })
+                return
+              }
+              
+              profileData = fetchedProfile
+            }
+            
+            // Use the newly created profile
+            const newProfile = {
+              ...profileData,
+              email: session.user.email || ''
+            }
+            
+            setUser(newProfile)
+            setFormValues(newProfile)
+            return
+          }
+          
           console.error('Error loading user profile:', userError)
           showError("profile", { 
             title: "Fehler beim Laden", 
@@ -98,7 +160,7 @@ export default function ProfileClient() {
     }
     
     loadUserData()
-  }, [supabase, router])
+  }, [supabase, router, setTheme])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -219,168 +281,178 @@ export default function ProfileClient() {
   }
 
   return (
-    <div className="py-6 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
-      <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mein Profil</h1>
-          <p className="text-muted-foreground mt-1">Verwalten Sie Ihre persönlichen Informationen</p>
+    <RequireAuth>
+      <div className="py-6 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
+        <div className="px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Mein Profil</h1>
+            <p className="text-muted-foreground mt-1">Verwalten Sie Ihre persönlichen Informationen</p>
+          </div>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={saving} 
+            className="gap-2"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Speichern...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Änderungen speichern
+              </>
+            )}
+          </Button>
         </div>
-        <Button 
-          onClick={handleSubmit} 
-          disabled={saving} 
-          className="gap-2"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Speichern...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4" />
-              Änderungen speichern
-            </>
-          )}
-        </Button>
-      </div>
-      
-      <div className="px-6 grid gap-6">
-        {/* Profile Information Card */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <User className="h-5 w-5 text-primary" />
-              Persönliche Informationen
-            </CardTitle>
-            <CardDescription>
-              Hier können Sie Ihre Profildaten und Ihr Avatar bearbeiten
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
-              <div className="flex flex-col items-center gap-3">
-                <Avatar className="h-28 w-28 border-2 border-muted">
-                  <AvatarImage 
-                    src={user?.avatar_url ? 
-                      supabase.storage.from('avatars').getPublicUrl(user.avatar_url).data.publicUrl
-                      : undefined} 
-                  />
-                  <AvatarFallback className="text-xl bg-primary/10 text-primary">{user?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <Label htmlFor="avatar" className="cursor-pointer text-sm px-3 py-1.5 border rounded-md hover:bg-muted inline-flex items-center gap-1">
-                    {uploadingAvatar ? (
-                      <>
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Wird hochgeladen...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-3 w-3" />
-                        Bild ändern
-                      </>
-                    )}
-                  </Label>
-                  <input 
-                    id="avatar" 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={uploadAvatar} 
-                    disabled={uploadingAvatar}
-                  />
+        
+        <div className="px-6 grid gap-6">
+          {/* Profile Information Card */}
+          <Card className="shadow-sm border-border/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <User className="h-5 w-5 text-primary" />
+                Persönliche Informationen
+              </CardTitle>
+              <CardDescription>
+                Hier können Sie Ihre Profildaten und Ihr Avatar bearbeiten
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                <div className="flex flex-col items-center gap-3">
+                  <Avatar className="h-28 w-28 border-2 border-muted">
+                    <AvatarImage 
+                      src={user?.avatar_url ? 
+                        (() => {
+                          try {
+                            return supabase.storage.from('avatars').getPublicUrl(user.avatar_url).data.publicUrl
+                          } catch (error) {
+                            console.error('Error getting avatar URL:', error)
+                            return undefined
+                          }
+                        })() 
+                        : undefined
+                      } 
+                    />
+                    <AvatarFallback className="text-xl bg-primary/10 text-primary">{user?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Label htmlFor="avatar" className="cursor-pointer text-sm px-3 py-1.5 border rounded-md hover:bg-muted inline-flex items-center gap-1">
+                      {uploadingAvatar ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Wird hochgeladen...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-3 w-3" />
+                          Bild ändern
+                        </>
+                      )}
+                    </Label>
+                    <input 
+                      id="avatar" 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={uploadAvatar} 
+                      disabled={uploadingAvatar}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1 space-y-4 w-full">
+                  <form onSubmit={handleSubmit} className="space-y-4 w-full">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Vollständiger Name</Label>
+                        <Input
+                          id="full_name"
+                          name="full_name"
+                          placeholder="Ihr Name"
+                          value={formValues.full_name || ''}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Benutzername</Label>
+                        <Input
+                          id="username"
+                          name="username"
+                          placeholder="Ihr Benutzername"
+                          value={formValues.username || ''}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-Mail-Adresse</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={user?.email || ''}
+                        disabled
+                        className="bg-muted/50"
+                      />
+                      <p className="text-xs text-muted-foreground">Die E-Mail-Adresse kann nicht geändert werden.</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website</Label>
+                      <Input
+                        id="website"
+                        name="website"
+                        placeholder="https://ihre-website.de"
+                        value={formValues.website || ''}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </form>
                 </div>
               </div>
-              
-              <div className="flex-1 space-y-4 w-full">
-                <form onSubmit={handleSubmit} className="space-y-4 w-full">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="full_name">Vollständiger Name</Label>
-                      <Input
-                        id="full_name"
-                        name="full_name"
-                        placeholder="Ihr Name"
-                        value={formValues.full_name || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="username">Benutzername</Label>
-                      <Input
-                        id="username"
-                        name="username"
-                        placeholder="Ihr Benutzername"
-                        value={formValues.username || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-Mail-Adresse</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="bg-muted/50"
-                    />
-                    <p className="text-xs text-muted-foreground">Die E-Mail-Adresse kann nicht geändert werden.</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      name="website"
-                      placeholder="https://ihre-website.de"
-                      value={formValues.website || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </form>
+            </CardContent>
+          </Card>
+          
+          {/* Security Card */}
+          <Card className="shadow-sm border-border/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Shield className="h-5 w-5 text-primary" />
+                Sicherheit & Datenschutz
+              </CardTitle>
+              <CardDescription>
+                Verwalten Sie Ihre Sicherheitseinstellungen
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Passwort ändern</Label>
+                  <p className="text-sm text-muted-foreground">Aktualisieren Sie Ihr Passwort regelmäßig für mehr Sicherheit</p>
+                </div>
+                <Button variant="outline" onClick={() => alert('Noch nicht implementiert')}>
+                  Passwort ändern
+                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Security Card */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Shield className="h-5 w-5 text-primary" />
-              Sicherheit & Datenschutz
-            </CardTitle>
-            <CardDescription>
-              Verwalten Sie Ihre Sicherheitseinstellungen
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Passwort ändern</Label>
-                <p className="text-sm text-muted-foreground">Aktualisieren Sie Ihr Passwort regelmäßig für mehr Sicherheit</p>
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="space-y-0.5">
+                  <Label className="text-destructive">Konto löschen</Label>
+                  <p className="text-sm text-muted-foreground">Löscht alle Ihre Daten unwiderruflich</p>
+                </div>
+                <Button variant="destructive" size="sm" onClick={() => alert('Noch nicht implementiert')}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Konto löschen
+                </Button>
               </div>
-              <Button variant="outline" onClick={() => alert('Noch nicht implementiert')}>
-                Passwort ändern
-              </Button>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="space-y-0.5">
-                <Label className="text-destructive">Konto löschen</Label>
-                <p className="text-sm text-muted-foreground">Löscht alle Ihre Daten unwiderruflich</p>
-              </div>
-              <Button variant="destructive" size="sm" onClick={() => alert('Noch nicht implementiert')}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Konto löschen
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
+        <Toaster />
       </div>
-      <Toaster />
-    </div>
+    </RequireAuth>
   )
 } 
