@@ -32,6 +32,11 @@ export function Sidebar() {
       icon: FileText
     },
     {
+      title: "Analysen",
+      href: "/analytics",
+      icon: Brain
+    },
+    {
       title: "Profil",
       href: "/profile",
       icon: UserCircle
