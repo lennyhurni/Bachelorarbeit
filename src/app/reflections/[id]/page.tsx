@@ -337,8 +337,17 @@ export default function ReflectionDetailPage() {
               onClick={analyzeReflection}
               disabled={analyzing}
             >
-              <RefreshCw className="h-4 w-4" />
-              Neu analysieren
+              {analyzing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Analysiere...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Neu analysieren
+                </>
+              )}
             </Button>
           )}
           
