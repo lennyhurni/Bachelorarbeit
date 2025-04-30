@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 import OpenAI from 'openai'
-import { openaiLogger, apiLogger } from "@/utils/logging"
+import { openaiLogger, apiLogger, safeApiLogger, safeOpenaiLogger } from "@/utils/logging"
 
 // Initialize OpenAI client
 let openai: OpenAI | undefined
@@ -18,7 +18,7 @@ try {
   // Continue with undefined client - will be handled in functions
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   apiLogger.info("Live reflection analysis request received")
   
   try {
@@ -77,10 +77,7 @@ export async function POST(request: Request) {
     })
     
   } catch (error: any) {
-    apiLogger.error('Error analyzing reflection in real-time:', { 
-      errorName: error?.name || 'UnknownError',
-      errorMessage: error?.message || 'No error message available'
-    })
+    safeApiLogger.errorSafe('Error analyzing reflection in real-time:', error)
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 export async function GET(
   request: Request, 
   { params }: { params: { id: string } }
-) {
+): Promise<Response> {
   try {
     const supabase = await createClient()
     
@@ -50,8 +50,11 @@ export async function GET(
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    console.error('Error fetching reflection:', error)
+  } catch (error: any) {
+    console.error('Error fetching reflection:', { 
+      errorName: error?.name, 
+      errorMessage: error?.message 
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -63,7 +66,7 @@ export async function GET(
 export async function PUT(
   request: Request, 
   { params }: { params: { id: string } }
-) {
+): Promise<Response> {
   try {
     const supabase = await createClient()
     
@@ -143,8 +146,11 @@ export async function PUT(
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    console.error('Error updating reflection:', error)
+  } catch (error: any) {
+    console.error('Error updating reflection:', { 
+      errorName: error?.name, 
+      errorMessage: error?.message 
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -156,7 +162,7 @@ export async function PUT(
 export async function DELETE(
   request: Request, 
   { params }: { params: { id: string } }
-) {
+): Promise<Response> {
   try {
     const supabase = await createClient()
     
@@ -217,8 +223,11 @@ export async function DELETE(
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    console.error('Error deleting reflection:', error)
+  } catch (error: any) {
+    console.error('Error deleting reflection:', { 
+      errorName: error?.name, 
+      errorMessage: error?.message 
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

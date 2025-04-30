@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   try {
     const supabase = await createClient()
     
@@ -99,8 +99,11 @@ export async function GET(request: Request) {
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    console.error('Error fetching reflections:', error)
+  } catch (error: any) {
+    console.error('Error fetching reflections:', { 
+      errorName: error?.name, 
+      errorMessage: error?.message 
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

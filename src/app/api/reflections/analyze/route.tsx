@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 import OpenAI from 'openai'
 import { LanguageServiceClient, protos } from '@google-cloud/language'
-import { nlpLogger, openaiLogger, apiLogger } from "@/utils/logging"
+import { nlpLogger, openaiLogger, apiLogger, safeApiLogger } from "@/utils/logging"
 
 // Initialize OpenAI client
 let openai: OpenAI | undefined
@@ -71,7 +71,7 @@ try {
   languageClient = undefined;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   apiLogger.info("Reflection analysis request received")
   
   try {
@@ -223,10 +223,7 @@ export async function POST(request: Request) {
     })
     
   } catch (error: any) {
-    apiLogger.error('Error analyzing reflection:', { 
-      errorName: error?.name || 'UnknownError',
-      errorMessage: error?.message || 'No error message available'
-    })
+    safeApiLogger.errorSafe('Error analyzing reflection:', error)
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
