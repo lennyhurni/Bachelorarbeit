@@ -1,10 +1,17 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 
+// Type that Next.js 15.2.4+ expects for route params
+type RouteParams = {
+  params: {
+    id: string
+  }
+}
+
 // GET endpoint to fetch a single reflection by ID
 export async function GET(
   request: Request, 
-  { params }: { params: { id: string } }
+  context: RouteParams
 ): Promise<Response> {
   try {
     const supabase = await createClient()
@@ -20,7 +27,7 @@ export async function GET(
     }
     
     // Get the reflection ID from the params
-    const id = params.id
+    const id = context.params.id
     
     if (!id) {
       return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
@@ -65,7 +72,7 @@ export async function GET(
 // PUT endpoint to update a reflection
 export async function PUT(
   request: Request, 
-  { params }: { params: { id: string } }
+  context: RouteParams
 ): Promise<Response> {
   try {
     const supabase = await createClient()
@@ -81,7 +88,7 @@ export async function PUT(
     }
     
     // Get the reflection ID from the params
-    const id = params.id
+    const id = context.params.id
     
     if (!id) {
       return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
@@ -161,7 +168,7 @@ export async function PUT(
 // DELETE endpoint to delete a reflection
 export async function DELETE(
   request: Request, 
-  { params }: { params: { id: string } }
+  context: RouteParams
 ): Promise<Response> {
   try {
     const supabase = await createClient()
@@ -177,7 +184,7 @@ export async function DELETE(
     }
     
     // Get the reflection ID from the params
-    const id = params.id
+    const id = context.params.id
     
     if (!id) {
       return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
