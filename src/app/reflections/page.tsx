@@ -27,6 +27,7 @@ import { useUserSettings } from "@/hooks/useUserSettings"
 import { useToast } from "@/components/ui/use-toast"
 import { useSession } from "@/contexts/SessionContext"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogAction,
