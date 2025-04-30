@@ -1,240 +1,139 @@
-import { createClient } from "@/utils/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
-
-interface Params {
-  id: string;
-}
-
-// GET endpoint to fetch a single reflection by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Params }
-): Promise<Response> {
-  try {
-    const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return new NextResponse(JSON.stringify({ error: "Nicht authentifiziert" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Get the reflection ID from the params
-    const id = params.id
-    
-    if (!id) {
-      return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Fetch the reflection from Supabase
-    const { data: reflection, error } = await supabase
-      .from('reflections')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
-    
-    if (error) {
-      console.error('Error fetching reflection:', error)
-      return new NextResponse(JSON.stringify({ error: "Reflexion nicht gefunden" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    return new NextResponse(JSON.stringify(reflection), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    })
-    
-  } catch (error: any) {
-    console.error('Error fetching reflection:', { 
-      errorName: error?.name, 
-      errorMessage: error?.message 
-    })
-    return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
-}
-
-// PUT endpoint to update a reflection
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Params }
-): Promise<Response> {
-  try {
-    const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return new NextResponse(JSON.stringify({ error: "Nicht authentifiziert" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Get the reflection ID from the params
-    const id = params.id
-    
-    if (!id) {
-      return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Get request body
-    const { title, content, category, is_public } = await request.json()
-    
-    if (!title || !content) {
-      return new NextResponse(JSON.stringify({ error: "Titel und Inhalt sind erforderlich" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Check if the reflection exists and belongs to the user
-    const { data: existingReflection, error: fetchError } = await supabase
-      .from('reflections')
-      .select('id')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
-    
-    if (fetchError || !existingReflection) {
-      return new NextResponse(JSON.stringify({ error: "Reflexion nicht gefunden oder keine Berechtigung" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Update the reflection
-    const { data: updatedReflection, error: updateError } = await supabase
-      .from('reflections')
-      .update({
-        title,
-        content,
-        category,
-        is_public,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .select()
-      .single()
-    
-    if (updateError) {
-      console.error('Error updating reflection:', updateError)
-      return new NextResponse(JSON.stringify({ error: "Fehler beim Aktualisieren der Reflexion" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    return new NextResponse(JSON.stringify({
-      success: true,
-      reflection: updatedReflection
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    })
-    
-  } catch (error: any) {
-    console.error('Error updating reflection:', { 
-      errorName: error?.name, 
-      errorMessage: error?.message 
-    })
-    return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
-}
-
-// DELETE endpoint to delete a reflection
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Params }
-): Promise<Response> {
-  try {
-    const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return new NextResponse(JSON.stringify({ error: "Nicht authentifiziert" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Get the reflection ID from the params
-    const id = params.id
-    
-    if (!id) {
-      return new NextResponse(JSON.stringify({ error: "Keine ID angegeben" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Check if the reflection exists and belongs to the user
-    const { data: existingReflection, error: fetchError } = await supabase
-      .from('reflections')
-      .select('id')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
-    
-    if (fetchError || !existingReflection) {
-      return new NextResponse(JSON.stringify({ error: "Reflexion nicht gefunden oder keine Berechtigung" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    // Delete the reflection
-    const { error: deleteError } = await supabase
-      .from('reflections')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
-    
-    if (deleteError) {
-      console.error('Error deleting reflection:', deleteError)
-      return new NextResponse(JSON.stringify({ error: "Fehler beim Löschen der Reflexion" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-    
-    return new NextResponse(JSON.stringify({
-      success: true
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    })
-    
-  } catch (error: any) {
-    console.error('Error deleting reflection:', { 
-      errorName: error?.name, 
-      errorMessage: error?.message 
-    })
-    return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
-} 
+   import { createClient } from '@/utils/supabase/server'
+   import { NextRequest, NextResponse } from 'next/server'
+   
+   /* ─────────── Hilfsfunktionen ─────────── */
+   
+   async function assertAuth() {
+     const supabase = await createClient()
+     const {
+       data: { user },
+     } = await supabase.auth.getUser()
+   
+     if (!user) {
+       throw new NextResponse(
+         JSON.stringify({ error: 'Nicht authentifiziert' }),
+         { status: 401, headers: { 'Content-Type': 'application/json' } },
+       )
+     }
+     return { supabase, userId: user.id }
+   }
+   
+   function json(data: unknown, status = 200) {
+     return new NextResponse(JSON.stringify(data), {
+       status,
+       headers: { 'Content-Type': 'application/json' },
+     })
+   }
+   
+   /* ─────────── GET ─────────── */
+   
+   export async function GET(
+     _req: NextRequest,
+     { params }: { params: { id: string } },
+   ): Promise<Response> {
+     const id = params.id // zuerst lesen, dann await
+   
+     try {
+       const { supabase, userId } = await assertAuth()
+       if (!id) return json({ error: 'Keine ID angegeben' }, 400)
+   
+       const { data, error } = await supabase
+         .from('reflections')
+         .select('*')
+         .eq('id', id)
+         .eq('user_id', userId)
+         .single()
+   
+       if (error) return json({ error: 'Reflexion nicht gefunden' }, 404)
+       return json(data)
+     } catch (err) {
+       if (err instanceof NextResponse) return err
+       console.error('GET /reflections/:id', err)
+       return json({ error: 'Interner Serverfehler' }, 500)
+     }
+   }
+   
+   /* ─────────── PUT ─────────── */
+   
+   export async function PUT(
+     req: NextRequest,
+     { params }: { params: { id: string } },
+   ): Promise<Response> {
+     const id = params.id
+   
+     try {
+       const { supabase, userId } = await assertAuth()
+       if (!id) return json({ error: 'Keine ID angegeben' }, 400)
+   
+       const { title, content, category, is_public } = await req.json()
+       if (!title || !content)
+         return json({ error: 'Titel und Inhalt sind erforderlich' }, 400)
+   
+       // Eigentums-Check
+       const { error: existsErr } = await supabase
+         .from('reflections')
+         .select('id')
+         .eq('id', id)
+         .eq('user_id', userId)
+         .single()
+       if (existsErr) return json({ error: 'Reflexion nicht gefunden' }, 404)
+   
+       const { data, error } = await supabase
+         .from('reflections')
+         .update({
+           title,
+           content,
+           category,
+           is_public,
+           updated_at: new Date().toISOString(),
+         })
+         .eq('id', id)
+         .eq('user_id', userId)
+         .select()
+         .single()
+   
+       if (error) return json({ error: 'Fehler beim Aktualisieren' }, 500)
+       return json({ success: true, reflection: data })
+     } catch (err) {
+       if (err instanceof NextResponse) return err
+       console.error('PUT /reflections/:id', err)
+       return json({ error: 'Interner Serverfehler' }, 500)
+     }
+   }
+   
+   /* ─────────── DELETE ─────────── */
+   
+   export async function DELETE(
+     _req: NextRequest,
+     { params }: { params: { id: string } },
+   ): Promise<Response> {
+     const id = params.id
+   
+     try {
+       const { supabase, userId } = await assertAuth()
+       if (!id) return json({ error: 'Keine ID angegeben' }, 400)
+   
+       // Eigentums-Check
+       const { error: existsErr } = await supabase
+         .from('reflections')
+         .select('id')
+         .eq('id', id)
+         .eq('user_id', userId)
+         .single()
+       if (existsErr) return json({ error: 'Reflexion nicht gefunden' }, 404)
+   
+       const { error } = await supabase
+         .from('reflections')
+         .delete()
+         .eq('id', id)
+         .eq('user_id', userId)
+   
+       if (error) return json({ error: 'Fehler beim Löschen' }, 500)
+       return json({ success: true })
+     } catch (err) {
+       if (err instanceof NextResponse) return err
+       console.error('DELETE /reflections/:id', err)
+       return json({ error: 'Interner Serverfehler' }, 500)
+     }
+   }
+   
