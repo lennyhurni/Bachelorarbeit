@@ -66,7 +66,7 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
           <circle cx="100" cy="100" r="85" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.7" />
           <circle cx="100" cy="100" r="60" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.6" />
           <circle cx="100" cy="100" r="35" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5" />
-          
+      
           {/* Achsenlinien für die KPIs */}
           {data.map((kpi, i) => {
             const angle = (Math.PI * 2 * i) / data.length;
@@ -101,8 +101,8 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
             stroke="rgb(59, 130, 246)"
           strokeWidth="1.5"
             className="transition-all duration-500 ease-in-out"
-          />
-          
+        />
+      
           {/* KPI-Punkte */}
           {data.map((kpi, i) => {
             const angle = (Math.PI * 2 * i) / data.length;
@@ -138,8 +138,8 @@ const RadarChart = ({ data }: { data: { name: string, value: number, color: stri
                 </foreignObject>
               </g>
             );
-          })}
-          
+      })}
+      
           {/* Zentrales Label mit Durchschnittswert */}
           <circle 
             cx="100" 
@@ -481,7 +481,7 @@ export default function NewAdaptiveReflection() {
           { name: "Kohärenz", value: convertToPercentage(data.analysis.kpi_coherence), color: "#10b981" },
           { name: "Metakognition", value: convertToPercentage(data.analysis.kpi_metacognition), color: "#8b5cf6" },
           { name: "Handlungsorientierung", value: convertToPercentage(data.analysis.kpi_actionable), color: "#f59e0b" }
-        ])
+      ])
         
         // Feedback-Nachricht setzen
         if (data.analysis.quick_feedback) {
@@ -507,7 +507,7 @@ export default function NewAdaptiveReflection() {
       setAnalyzingFeedback(false)
     }
   }
-  
+
   // Update adaptive prompts based on reflection content with enhanced metakognition detection
   useEffect(() => {
     const newPrompts = updateAdaptivePrompts(reflectionText)
@@ -1073,8 +1073,8 @@ export default function NewAdaptiveReflection() {
                       value={reflectionText}
                       onChange={(e) => setReflectionText(e.target.value)}
                     />
-                  </div>
-                  
+                          </div>
+                          
                   {/* Hilfreiche Fragen als separate Karte */}
                   <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/50 mt-4">
                     <CardHeader className="p-3 pb-1">
@@ -1129,7 +1129,7 @@ export default function NewAdaptiveReflection() {
                           <Save className="mr-2 h-4 w-4" />
                           Reflexion speichern
                         </>
-                      )}
+                                )}
                     </Button>
                               </div>
                 </CardContent>

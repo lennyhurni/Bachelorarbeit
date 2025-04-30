@@ -515,7 +515,7 @@ async function getNLPMetrics(content: string) {
     
     if (isTextTooShort) {
       kpi_metacognition = Math.min(2, content.toLowerCase().includes("ich") ? 2 : 1);
-    } else {
+      } else {
       // 1. Self-reference indicators (research shows strong correlation with metacognitive processes)
       // Include Swiss German variations based on detected language
       const selfReferenceTerms = [
