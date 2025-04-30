@@ -5,14 +5,17 @@ import { LanguageServiceClient, protos } from '@google-cloud/language'
 import { nlpLogger, openaiLogger, apiLogger } from "@/utils/logging"
 
 // Initialize OpenAI client
-let openai: OpenAI
+let openai: OpenAI | undefined
 try {
   openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
   })
   openaiLogger.info("OpenAI client initialized successfully")
-} catch (error) {
-  openaiLogger.critical("Failed to initialize OpenAI client", { error })
+} catch (error: any) {
+  openaiLogger.critical("Failed to initialize OpenAI client", { 
+    errorName: error?.name || 'UnknownError',
+    errorMessage: error?.message || 'No error message available' 
+  })
   // Continue with undefined client - will be handled in functions
 }
 
@@ -60,8 +63,11 @@ try {
     nlpLogger.warn("No Google Cloud credentials found. Using simplified analysis only.")
     languageClient = undefined;
   }
-} catch (error) {
-  nlpLogger.error("Error initializing Google NLP client:", { error })
+} catch (error: any) {
+  nlpLogger.error("Error initializing Google NLP client:", { 
+    errorName: error?.name || 'UnknownError',
+    errorMessage: error?.message || 'No error message available' 
+  })
   languageClient = undefined;
 }
 
@@ -216,8 +222,11 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    apiLogger.error('Error analyzing reflection:', { error })
+  } catch (error: any) {
+    apiLogger.error('Error analyzing reflection:', { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available'
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -267,8 +276,11 @@ async function analyzeReflection(content: string, title: string, category?: stri
       feedback: llmAnalysis.feedback,
       insights: llmAnalysis.insights
     };
-  } catch (error) {
-    apiLogger.error('Error in hybrid analysis:', { error });
+  } catch (error: any) {
+    apiLogger.error('Error in hybrid analysis:', { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available'
+    });
     // Return default values as fallback
     return {
       kpi_depth: 5,
@@ -793,8 +805,11 @@ async function getNLPMetrics(content: string) {
     });
     
     return metrics;
-  } catch (error) {
-    nlpLogger.error('Error in NLP analysis:', { error });
+  } catch (error: any) {
+    nlpLogger.error('Error in NLP analysis:', { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available'
+    });
     
     // Perform basic pattern-based analysis as fallback with scientific principles
     try {
@@ -841,8 +856,11 @@ async function getNLPMetrics(content: string) {
         kpi_metacognition: Math.max(1, Math.min(5, Math.round(metacognitionMatches * 1.5))),
         kpi_actionable: Math.max(1, Math.min(5, Math.round(actionMatches * 1.5)))
       };
-    } catch (backupError) {
-      nlpLogger.error('Error in fallback analysis:', { backupError });
+    } catch (backupError: any) {
+      nlpLogger.error('Error in fallback analysis:', { 
+        errorName: backupError?.name || 'UnknownError',
+        errorMessage: backupError?.message || 'No error message available'
+      });
       
       // Final minimal fallback with basic text length consideration
       const isTextTooShort = content.length < 100;
@@ -963,15 +981,19 @@ Antworte mit einem validen JSON-Objekt mit den Feldern: reflection_level, feedba
           ? analysisResponse.insights 
           : ["Keine Erkenntnisse verfügbar."]
       };
-    } catch (parseError) {
+    } catch (parseError: any) {
       openaiLogger.error('Failed to parse OpenAI response as JSON', { 
-        error: parseError,
+        errorName: parseError?.name || 'UnknownError',
+        errorMessage: parseError?.message || 'No error message available',
         content
       });
       throw new Error('Failed to parse OpenAI response');
     }
-  } catch (error) {
-    openaiLogger.error('Error in GPT analysis:', { error });
+  } catch (error: any) {
+    openaiLogger.error('Error in GPT analysis:', { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available' 
+    });
     // Return default values if analysis fails
     return {
       reflection_level: "Beschreibend",

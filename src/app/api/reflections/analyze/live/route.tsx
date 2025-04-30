@@ -4,14 +4,17 @@ import OpenAI from 'openai'
 import { openaiLogger, apiLogger } from "@/utils/logging"
 
 // Initialize OpenAI client
-let openai: OpenAI
+let openai: OpenAI | undefined
 try {
   openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
   })
   openaiLogger.info("OpenAI client initialized successfully for live analysis")
-} catch (error) {
-  openaiLogger.critical("Failed to initialize OpenAI client for live analysis", { error })
+} catch (error: any) {
+  openaiLogger.critical("Failed to initialize OpenAI client for live analysis", { 
+    errorName: error?.name || 'UnknownError',
+    errorMessage: error?.message || 'No error message available'
+  })
   // Continue with undefined client - will be handled in functions
 }
 
@@ -73,8 +76,11 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     })
     
-  } catch (error) {
-    apiLogger.error('Error analyzing reflection in real-time:', { error })
+  } catch (error: any) {
+    apiLogger.error('Error analyzing reflection in real-time:', { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available'
+    })
     return new NextResponse(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -293,8 +299,11 @@ async function getLiveAnalysis(content: string, title?: string, category?: strin
             feedbackLength: quickFeedback.length
           });
         }
-      } catch (error) {
-        apiLogger.error("Error generating LLM-based feedback", { error });
+      } catch (error: any) {
+        apiLogger.error("Error generating LLM-based feedback", { 
+          errorName: error?.name || 'UnknownError',
+          errorMessage: error?.message || 'No error message available'
+        });
         // Fallback to rule-based prompts if OpenAI fails
         adaptivePrompts = generateRuleBasedPrompts(content, words, hasAnalyticalPhrases, hasCriticalPhrases, metacognitionScore, actionScore);
         quickFeedback = generateBasicFeedback(overallScore);
@@ -332,8 +341,11 @@ async function getLiveAnalysis(content: string, title?: string, category?: strin
     });
     
     return result;
-  } catch (error) {
-    apiLogger.error("Error performing live analysis", { error });
+  } catch (error: any) {
+    apiLogger.error("Error performing live analysis", { 
+      errorName: error?.name || 'UnknownError',
+      errorMessage: error?.message || 'No error message available'
+    });
     
     // Return default values in case of error
     return {

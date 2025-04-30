@@ -206,4 +206,39 @@ export class Logger {
 export const apiLogger = new Logger('api')
 export const nlpLogger = new Logger('nlp')
 export const openaiLogger = new Logger('openai')
-export const systemLogger = new Logger('system') 
+export const systemLogger = new Logger('system')
+
+// Helper function to safely extract error information without sensitive data
+export function safeErrorExtract(error: any) {
+  if (!error) return { errorName: 'NoError', errorMessage: 'No error provided' };
+  
+  return {
+    errorName: error?.name || 'UnknownError',
+    errorMessage: error?.message || 'No error message available',
+    errorCode: error?.code,
+    statusCode: error?.statusCode || error?.status
+  };
+}
+
+// Extended logger classes with safe error logging
+export class SafeBaseLogger extends Logger {
+  errorSafe(message: string, error: any, metadata?: Record<string, any>) {
+    const safeError = safeErrorExtract(error);
+    this.error(message, { ...safeError, ...(metadata || {}) });
+  }
+  
+  criticalSafe(message: string, error: any, metadata?: Record<string, any>) {
+    const safeError = safeErrorExtract(error);
+    this.critical(message, { ...safeError, ...(metadata || {}) });
+  }
+  
+  warnSafe(message: string, error: any, metadata?: Record<string, any>) {
+    const safeError = safeErrorExtract(error);
+    this.warn(message, { ...safeError, ...(metadata || {}) });
+  }
+}
+
+// Examples using the safe loggers
+export const safeApiLogger = new SafeBaseLogger('api')
+export const safeNlpLogger = new SafeBaseLogger('nlp')
+export const safeOpenaiLogger = new SafeBaseLogger('openai') 
