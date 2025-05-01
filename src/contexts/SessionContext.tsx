@@ -106,15 +106,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         } else {
           // Session is valid
           setSession(data.session)
-          
-          // Profil laden oder erstellen
-          const profile = await ensureUserProfile(
-            data.session.user.id,
-            data.session.user.email,
-            data.session.user.user_metadata?.full_name
-          )
-          
-          setUser(profile)
+        
+        // Profil laden oder erstellen
+        const profile = await ensureUserProfile(
+          data.session.user.id,
+          data.session.user.email,
+          data.session.user.user_metadata?.full_name
+        )
+        
+        setUser(profile)
         }
       } else {
         setSession(null)
@@ -149,10 +149,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession: Session | null) => {
         console.log("Auth state changed:", event)
-        
+          
         if (event === 'SIGNED_OUT') {
           setSession(null)
-          setUser(null)
+            setUser(null)
           setLoading(false)
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // Re-run refresh session logic

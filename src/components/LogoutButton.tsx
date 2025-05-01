@@ -10,12 +10,14 @@ interface LogoutButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg" | "icon"
   className?: string
+  redirectTo?: string
 }
 
 export default function LogoutButton({ 
   variant = "default",
   size = "default", 
-  className = ""
+  className = "",
+  redirectTo = "/login"
 }: LogoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -25,8 +27,10 @@ export default function LogoutButton({
     
     setIsLoading(true)
     try {
-      // Use server-side logout route with proper method
-      const response = await fetch('/auth/logout', {
+      // Use server-side logout route with proper method and pass redirectTo
+      const logoutUrl = `/auth/logout${redirectTo !== "/login" ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`
+      
+      const response = await fetch(logoutUrl, {
         method: 'GET',
         cache: 'no-store',
       })
@@ -43,9 +47,9 @@ export default function LogoutButton({
         // Show success message
         showSuccess("logout")
         
-        // Manually redirect to login if no redirect in response
+        // Manually redirect if no redirect in response
         setTimeout(() => {
-          router.push('/login')
+          router.push(redirectTo)
           router.refresh()
         }, 1000)
       }
@@ -53,9 +57,9 @@ export default function LogoutButton({
       console.error('Logout error:', error)
       showError("logout")
       
-      // If there's an error, still try to redirect to login
+      // If there's an error, still try to redirect
       setTimeout(() => {
-        router.push('/login')
+        router.push(redirectTo)
       }, 1500)
     } finally {
       setIsLoading(false)

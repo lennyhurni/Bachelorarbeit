@@ -554,7 +554,7 @@ export default function AnalyticsPage() {
                   <div className="text-3xl font-bold">{analytics.avgMetrics.depth}/10</div>
                   <p className="text-xs text-muted-foreground">
                     {analytics.avgMetrics.depth < 4 ? 'Ausbaufähig' : analytics.avgMetrics.depth < 7 ? 'Gut' : 'Ausgezeichnet'}
-                  </p>
+                    </p>
                 </CardContent>
               </Card>
               
