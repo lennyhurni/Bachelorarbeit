@@ -168,7 +168,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }
       subscription.unsubscribe()
     }
-  }, [])
+  }, [refreshSession, supabase.auth])
 
   return (
     <SessionContext.Provider value={{ session, user, loading, refreshSession }}>

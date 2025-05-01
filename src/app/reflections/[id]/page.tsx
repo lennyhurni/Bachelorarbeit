@@ -209,7 +209,7 @@ export default function ReflectionDetailPage() {
     if (params.id) {
       fetchReflection()
     }
-  }, [params.id])
+  }, [params.id, fetchReflection])
   
   const calculateAvgScore = () => {
     if (!reflection) return 0

@@ -98,7 +98,7 @@ export function useUserSettings() {
     }
     
     loadSettings()
-  }, [supabase, session, sessionLoading, retryCount])
+  }, [supabase, session, sessionLoading, retryCount, retryWithDelay])
 
   // Function to update a single setting
   const updateSetting = async <K extends keyof UserSettings>(

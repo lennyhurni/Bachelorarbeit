@@ -41,7 +41,7 @@ function LoginFormContent() {
     }
     
     checkSession()
-  }, [])
+  }, [supabase.auth])
 
   // Handle login with email and password
   async function handleSubmit(e: React.FormEvent) {

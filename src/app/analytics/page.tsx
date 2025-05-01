@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
   
   useEffect(() => {
     fetchAnalytics()
-  }, [timeRange])
+  }, [timeRange, fetchAnalytics])
   
   async function fetchAnalytics() {
     try {

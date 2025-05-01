@@ -35,12 +35,12 @@ function json(data: unknown, status = 200) {
 /* ────────── GET /api/reflections/:id ────────── */
 
 export async function GET(
-  _req: NextRequest,
-  ctx: { params: { id: string } },  // Typ korrekt angeben
-): Promise<NextResponse> {
+  _req: Request,
+  { params }: { params: { id: string } }
+): Promise<Response> {
   try {
     // ID richtig aus dem params-Objekt extrahieren
-    const { id } = ctx.params
+    const { id } = params
 
     const { supabase, userId } = await assertAuth()
 
@@ -63,11 +63,11 @@ export async function GET(
 /* ────────── PUT /api/reflections/:id ────────── */
 
 export async function PUT(
-  req: NextRequest,
-  ctx: { params: { id: string } },
-): Promise<NextResponse> {
+  req: Request,
+  { params }: { params: { id: string } }
+): Promise<Response> {
   try {
-    const { id } = ctx.params
+    const { id } = params
 
     const { supabase, userId } = await assertAuth()
 
@@ -110,11 +110,11 @@ export async function PUT(
 /* ────────── DELETE /api/reflections/:id ────────── */
 
 export async function DELETE(
-  _req: NextRequest,
-  ctx: { params: { id: string } },
-): Promise<NextResponse> {
+  _req: Request,
+  { params }: { params: { id: string } }
+): Promise<Response> {
   try {
-    const { id } = ctx.params
+    const { id } = params
 
     const { supabase, userId } = await assertAuth()
 
