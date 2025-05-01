@@ -36,11 +36,12 @@ function json(data: unknown, status = 200) {
 
 export async function GET(
   _req: NextRequest,
-  ctx: any, // ← keine spezifische Typprüfung nötig
+  ctx: { params: { id: string } },  // Typ korrekt angeben
 ): Promise<NextResponse> {
-  const id: string = ctx.params.id   // sofort sichern
-
   try {
+    // ID richtig aus dem params-Objekt extrahieren
+    const { id } = ctx.params
+
     const { supabase, userId } = await assertAuth()
 
     const { data, error } = await supabase
@@ -63,11 +64,11 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  ctx: any,
+  ctx: { params: { id: string } },
 ): Promise<NextResponse> {
-  const id: string = ctx.params.id
-
   try {
+    const { id } = ctx.params
+
     const { supabase, userId } = await assertAuth()
 
     const { title, content, category, is_public } = await req.json()
@@ -110,11 +111,11 @@ export async function PUT(
 
 export async function DELETE(
   _req: NextRequest,
-  ctx: any,
+  ctx: { params: { id: string } },
 ): Promise<NextResponse> {
-  const id: string = ctx.params.id
-
   try {
+    const { id } = ctx.params
+
     const { supabase, userId } = await assertAuth()
 
     // Eigentums-Check
