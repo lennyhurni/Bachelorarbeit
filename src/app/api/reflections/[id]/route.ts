@@ -36,9 +36,9 @@ function json(data: unknown, status = 200) {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const id: string = params.id   // sofort sichern
+  const { id } = await props.params   // sofort sichern
 
   try {
     const { supabase, userId } = await assertAuth()
@@ -63,9 +63,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const id: string = params.id
+  const { id } = await props.params
 
   try {
     const { supabase, userId } = await assertAuth()
@@ -110,9 +110,9 @@ export async function PUT(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const id: string = params.id
+  const { id } = await props.params
 
   try {
     const { supabase, userId } = await assertAuth()
