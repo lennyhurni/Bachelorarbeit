@@ -11,13 +11,24 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, AlertCircle, Check, RefreshCw } from "lucide-react";
 
+// Definiere den Typ für Reflection-Objekte
+interface Reflection {
+  id: string;
+  title: string;
+  created_at: string;
+  analyzed_at: string | null;
+  content?: string;
+  category?: string;
+  user_id?: string;
+}
+
 export default function ProcessReflections() {
   const supabase = createClient();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [reflections, setReflections] = useState([]);
+  const [reflections, setReflections] = useState<Reflection[]>([]);
   const [processing, setProcessing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(0);
