@@ -209,7 +209,7 @@ export default function ReflectionDetailPage() {
     if (params.id) {
       fetchReflection()
     }
-  }, [params.id, fetchReflection])
+  }, [params.id])
   
   const calculateAvgScore = () => {
     if (!reflection) return 0
@@ -296,10 +296,10 @@ export default function ReflectionDetailPage() {
           <Link href="/reflections" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             <span>Zurück</span>
-          </Link>
-        </Button>
+            </Link>
+          </Button>
         <h1 className="font-bold text-2xl ml-2">{reflection.title}</h1>
-      </div>
+            </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -338,42 +338,42 @@ export default function ReflectionDetailPage() {
                 </Badge>
                 <Badge variant="outline" className="gap-1 font-normal">
                   {reflection.category}
-                </Badge>
-              </div>
+              </Badge>
+          </div>
             </CardHeader>
             <CardContent className="pt-2">
               <div className="text-sm whitespace-pre-wrap">
                 {reflection.content}
-              </div>
+        </div>
               <div className="mt-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" asChild className="h-8">
                     <Link href={`/reflections/${reflection.id}/edit`} className="flex items-center gap-1">
                       <Edit className="h-3.5 w-3.5" />
-                      Bearbeiten
-                    </Link>
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+              Bearbeiten
+            </Link>
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="h-8 text-destructive">
                         <Trash2 className="h-3.5 w-3.5 mr-1" />
-                        Löschen
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Reflexion löschen?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                Löschen
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reflexion löschen?</AlertDialogTitle>
+                <AlertDialogDescription>
                           Diese Aktion kann nicht rückgängig gemacht werden. Die Reflexion und alle dazugehörigen Analysen werden dauerhaft gelöscht.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleDelete}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          disabled={deleteLoading}
-                        >
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDelete} 
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleteLoading}
+                >
                           {deleteLoading ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -382,17 +382,17 @@ export default function ReflectionDetailPage() {
                           ) : (
                             <>Löschen</>
                           )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" className="h-8" onClick={handlePrint}>
                     <Printer className="h-3.5 w-3.5 mr-1" />
                     Drucken
                   </Button>
-                </div>
+      </div>
               </div>
             </CardContent>
           </Card>
@@ -483,7 +483,7 @@ export default function ReflectionDetailPage() {
                       </p>
                       <Button 
                         onClick={analyzeReflection} 
-                        disabled={analyzing}
+                        disabled={analyzing} 
                         className="gap-2"
                       >
                         {analyzing ? (
@@ -696,15 +696,15 @@ export default function ReflectionDetailPage() {
                           )}
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                  
+                </CardContent>
+              </Card>
+              
                   {/* AI Insights */}
-                  {reflection.ai_insights && reflection.ai_insights.length > 0 && (
+              {reflection.ai_insights && reflection.ai_insights.length > 0 && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="flex items-center gap-2">
-                          <Lightbulb className="h-5 w-5 text-primary" />
+                    <CardTitle className="flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-primary" />
                           KI-Erkenntnisse
                           <TooltipProvider>
                             <Tooltip>
@@ -722,32 +722,32 @@ export default function ReflectionDetailPage() {
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                        </CardTitle>
-                      </CardHeader>
+                    </CardTitle>
+                  </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          {reflection.ai_insights.map((insight, index) => (
+                      {reflection.ai_insights.map((insight, index) => (
                             <li key={index} className="flex items-start gap-2">
                               <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                                 <span className="text-xs text-primary font-medium">{index + 1}</span>
-                              </div>
+                          </div>
                               <span className="text-sm">{insight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
                 </>
               )}
             </TabsContent>
           </Tabs>
-        </div>
-        
+            </div>
+            
         {/* Sidebar with KPI Dashboard */}
         <div className="space-y-6">
-          <ReflectionKPIDashboard 
-            reflection={reflection} 
+                <ReflectionKPIDashboard 
+                  reflection={reflection} 
             feedbackDepth={(settings?.feedbackDepth || 'standard') as 'basic' | 'standard' | 'detailed'} 
           />
           
@@ -785,8 +785,8 @@ export default function ReflectionDetailPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
+            </div>
+          </div>
     </div>
   )
 } 

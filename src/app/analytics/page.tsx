@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
   
   useEffect(() => {
     fetchAnalytics()
-  }, [timeRange, fetchAnalytics])
+  }, [timeRange])
   
   async function fetchAnalytics() {
     try {
@@ -460,7 +460,7 @@ export default function AnalyticsPage() {
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                  </Button>
+            </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm">
                   <p>
@@ -475,13 +475,13 @@ export default function AnalyticsPage() {
             </TooltipProvider>
           </div>
         </div>
-        
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Skeleton className="h-[250px] w-full rounded-xl" />
             <Skeleton className="h-[250px] w-full rounded-xl" />
             <Skeleton className="h-[250px] w-full rounded-xl" />
-          </div>
+                  </div>
         ) : error ? (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
@@ -721,40 +721,40 @@ export default function AnalyticsPage() {
                 
                 <SubTabContent value="overview">
                   <Card>
-                    <CardHeader>
+              <CardHeader>
                       <CardTitle>Entwicklung der Reflexionsqualität</CardTitle>
                       <CardDescription>Durchschnittliche Werte über Zeit</CardDescription>
-                    </CardHeader>
+              </CardHeader>
                     <CardContent className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis domain={[0, 10]} />
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 10]} />
                           <RechartsTooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="depth" 
-                            name="Tiefe" 
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="depth"
+                        name="Tiefe"
                             stroke={COLORS[0]} 
                             activeDot={{ r: 8 }} 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="coherence" 
-                            name="Kohärenz" 
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="coherence"
+                        name="Kohärenz"
                             stroke={COLORS[1]} 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="metacognition" 
-                            name="Metakognition" 
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="metacognition"
+                        name="Metakognition"
                             stroke={COLORS[2]} 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="actionable" 
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="actionable"
                             name="Handlung" 
                             stroke={COLORS[3]} 
                           />
@@ -777,26 +777,26 @@ export default function AnalyticsPage() {
                           <XAxis dataKey="date" />
                           <YAxis domain={[0, 10]} />
                           <RechartsTooltip />
-                          <Line 
-                            type="monotone" 
+                      <Line
+                        type="monotone"
                             dataKey="depth" 
                             name="Reflexionstiefe" 
                             stroke={COLORS[0]} 
-                            strokeWidth={2}
+                        strokeWidth={2}
                             activeDot={{ r: 8 }} 
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+              </CardContent>
+            </Card>
                 </SubTabContent>
-                
+            
                 <SubTabContent value="coherence">
                   <Card>
-                    <CardHeader>
+                <CardHeader>
                       <CardTitle>Entwicklung der Kohärenz</CardTitle>
                       <CardDescription>Wie logisch und zusammenhängend deine Reflexionen sind</CardDescription>
-                    </CardHeader>
+                </CardHeader>
                     <CardContent className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
@@ -814,16 +814,16 @@ export default function AnalyticsPage() {
                           />
                         </LineChart>
                       </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                </CardContent>
+              </Card>
                 </SubTabContent>
-                
+              
                 <SubTabContent value="metacognition">
                   <Card>
-                    <CardHeader>
+                <CardHeader>
                       <CardTitle>Entwicklung der Metakognition</CardTitle>
                       <CardDescription>Wie bewusst du über dein eigenes Denken reflektierst</CardDescription>
-                    </CardHeader>
+                </CardHeader>
                     <CardContent className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
@@ -841,44 +841,44 @@ export default function AnalyticsPage() {
                           />
                         </LineChart>
                       </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                </CardContent>
+              </Card>
                 </SubTabContent>
-                
+          
                 <SubTabContent value="actionable">
                   <Card>
-                    <CardHeader>
+              <CardHeader>
                       <CardTitle>Entwicklung der Handlungsorientierung</CardTitle>
                       <CardDescription>Wie effektiv du konkrete nächste Schritte ableitest</CardDescription>
-                    </CardHeader>
+              </CardHeader>
                     <CardContent className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
-                          <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
-                          <YAxis domain={[0, 10]} />
+                      <YAxis domain={[0, 10]} />
                           <RechartsTooltip />
                           <Line 
-                            type="monotone" 
+                        type="monotone"
                             dataKey="actionable" 
                             name="Handlungsorientierung" 
                             stroke={COLORS[3]} 
-                            strokeWidth={2}
+                        strokeWidth={2}
                             activeDot={{ r: 8 }} 
-                          />
+                      />
                         </LineChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                  </ResponsiveContainer>
+              </CardContent>
+            </Card>
                 </SubTabContent>
               </MainTabContent>
-              
+            
               <MainTabContent value="frequency">
                 <Card>
-                  <CardHeader>
+                <CardHeader>
                     <CardTitle>Reflexionshäufigkeit</CardTitle>
                     <CardDescription>Anzahl der Reflexionen im Zeitverlauf</CardDescription>
-                  </CardHeader>
+                </CardHeader>
                   <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analytics.reflectionsOverTime}>
@@ -889,16 +889,16 @@ export default function AnalyticsPage() {
                         <Bar dataKey="count" name="Anzahl" fill={COLORS[0]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+                </CardContent>
+              </Card>
               </MainTabContent>
               
               <MainTabContent value="categories">
                 <Card>
-                  <CardHeader>
+                <CardHeader>
                     <CardTitle>Kategorieverteilung</CardTitle>
                     <CardDescription>Verteilung deiner Reflexionen nach Kategorien</CardDescription>
-                  </CardHeader>
+                </CardHeader>
                   <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <RePieChart>
@@ -1024,14 +1024,14 @@ export default function AnalyticsPage() {
                       <li key={index} className="flex items-start gap-2">
                         <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-800/30 flex items-center justify-center">
                           <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">{index + 1}</span>
-                        </div>
+                          </div>
                         <span>{area}</span>
-                      </li>
+                          </li>
                     ))}
-                  </ul>
+                        </ul>
                 </CardContent>
               </Card>
-            </div>
+                      </div>
             
             <div className="flex justify-center mt-12">
               <Button asChild>
@@ -1040,13 +1040,13 @@ export default function AnalyticsPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-            </div>
+                    </div>
           </>
         ) : (
           <div className="py-16 text-center">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <BarChart4 className="h-6 w-6 text-muted-foreground" />
-            </div>
+                  </div>
             <h2 className="text-lg font-medium mt-4">Keine Reflexionen vorhanden</h2>
             <p className="text-muted-foreground max-w-md mx-auto mt-2 mb-6">
               Erstelle deine erste Reflexion, um detaillierte Analysen und Trends zu sehen.
@@ -1054,7 +1054,7 @@ export default function AnalyticsPage() {
             <Button asChild>
               <Link href="/reflections/new">Erste Reflexion erstellen</Link>
             </Button>
-          </div>
+            </div>
         )}
       </div>
     </RequireAuth>

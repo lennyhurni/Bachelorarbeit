@@ -215,7 +215,7 @@ export default function ReflectionsPage() {
     if (!sessionLoading && user) {
       fetchReflections()
     }
-  }, [user, sessionLoading, selectedCategory, sortBy, searchQuery, fetchReflections])
+  }, [user, sessionLoading, selectedCategory, sortBy, searchQuery])
 
   // Handle search input with debouncing
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {

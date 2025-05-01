@@ -241,7 +241,7 @@ export default function SettingsPage() {
     
     loadUserSettings()
     // Only include supabase dependency to avoid infinite loops
-  }, [supabase, changeTheme, defaultSettings])
+  }, [supabase, changeTheme])
 
   // Optimize the theme change handler
   const handleThemeChange = React.useCallback((value: string) => {

@@ -145,7 +145,7 @@ export default function EditReflectionPage() {
     if (params.id) {
       fetchReflection()
     }
-  }, [params.id, fetchReflection])
+  }, [params.id])
   
   if (loading) {
     return (

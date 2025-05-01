@@ -35,13 +35,12 @@ function json(data: unknown, status = 200) {
 /* ────────── GET /api/reflections/:id ────────── */
 
 export async function GET(
-  _req: Request,
+  _req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<Response> {
-  try {
-    // ID richtig aus dem params-Objekt extrahieren
-    const { id } = params
+): Promise<NextResponse> {
+  const id: string = params.id   // sofort sichern
 
+  try {
     const { supabase, userId } = await assertAuth()
 
     const { data, error } = await supabase
@@ -63,12 +62,12 @@ export async function GET(
 /* ────────── PUT /api/reflections/:id ────────── */
 
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<Response> {
-  try {
-    const { id } = params
+): Promise<NextResponse> {
+  const id: string = params.id
 
+  try {
     const { supabase, userId } = await assertAuth()
 
     const { title, content, category, is_public } = await req.json()
@@ -110,12 +109,12 @@ export async function PUT(
 /* ────────── DELETE /api/reflections/:id ────────── */
 
 export async function DELETE(
-  _req: Request,
+  _req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<Response> {
-  try {
-    const { id } = params
+): Promise<NextResponse> {
+  const id: string = params.id
 
+  try {
     const { supabase, userId } = await assertAuth()
 
     // Eigentums-Check

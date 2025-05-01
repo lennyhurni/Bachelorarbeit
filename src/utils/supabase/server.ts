@@ -8,89 +8,96 @@ export function createClient() {
   // Return a dummy client during build if environment variables are missing
   if (!supabaseUrl || !supabaseKey) {
     console.warn("Supabase URL or key is missing. This might be expected during build time.")
-    return createDummyClient()
+    return {
+      auth: {
+        getSession: () => Promise.resolve({ data: { session: null } }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signOut: () => Promise.resolve({ error: null }),
+        signInWithPassword: () => Promise.resolve({ data: { session: null }, error: null }),
+        updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signUp: () => Promise.resolve({ data: { user: null }, error: null }),
+        onAuthStateChange: () => ({ 
+          data: { subscription: { unsubscribe: () => {} } }, 
+        }),
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: null })
+          }),
+          order: () => ({
+            limit: () => Promise.resolve({ data: [], error: null })
+          }),
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: null, error: null })
+        }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        delete: () => ({
+          eq: () => Promise.resolve({ data: null, error: null })
+        }),
+      }),
+      // Add other methods needed during build as needed
+    } as any
   }
   
+  // Check if we're in a build/static environment where cookies() would throw an error
+  // This helps prevent the "cookies was called outside a request scope" error
   try {
-    // Create the Supabase client with improved cookie handling for Next.js 15+
+    // Try to create a real client
     return createServerClient(
       supabaseUrl,
       supabaseKey,
       {
         cookies: {
-          // Neue cookie handler implementation die mit next js 15 kompatibel ist
-          async get(name: string) {
+          /** Alle Cookies lesen */
+          async getAll() {
+            // Safely try to access cookies
             try {
-              const cookieStore = await cookies()
-              return cookieStore.get(name)?.value
+              return (await cookies()).getAll()
             } catch (error) {
-              console.warn(`Error getting cookie '${name}':`, error)
-              return undefined
+              console.warn("Failed to access cookies, returning empty array", error)
+              return []
             }
           },
-          async set(name: string, value: string, options) {
+
+          /** Mehrere Cookies setzen bzw. löschen */
+          async setAll(items) {
             try {
-              const cookieStore = await cookies()
-              cookieStore.set(name, value, options)
-            } catch (error) {
-              // Wir ignorieren bestimmte erwartete Fehler im dev mode
-              if (error instanceof Error && 
-                  !error.message.includes('Cookies can only be modified')) {
-                console.warn(`Error setting cookie '${name}':`, error.message)
+              const store = await cookies()
+
+              // In einer Server Component kann store.set fehlen.
+              // Das Casting verhindert TS-Fehler und ist zur Laufzeit unkritisch.
+              const setter = (store as unknown as { set?: typeof store.set }).set
+
+              if (setter) {
+                items.forEach(({ name, value, options }) =>
+                  setter(name, value, options)
+                )
               }
-            }
-          },
-          async remove(name: string, options) {
-            try {
-              const cookieStore = await cookies()
-              cookieStore.set(name, '', { ...options, maxAge: 0 })
             } catch (error) {
-              // Wir ignorieren bestimmte erwartete Fehler im dev mode
-              if (error instanceof Error && 
-                  !error.message.includes('Cookies can only be modified')) {
-                console.warn(`Error removing cookie '${name}':`, error.message)
-              }
+              console.warn("Failed to set cookies", error)
             }
           }
         }
       }
     )
-  } catch (error) {
-    console.warn("Error creating Supabase client, returning mock client:", error)
-    return createDummyClient()
+  } catch (e) {
+    // If createServerClient fails, return the mock client
+    console.warn("Error creating Supabase client, returning mock client", e)
+    return {
+      auth: {
+        getSession: () => Promise.resolve({ data: { session: null } }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signOut: () => Promise.resolve({ error: null }),
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: null })
+          }),
+        }),
+      }),
+    } as any
   }
-}
-
-// Hilfsfunktion für einen Mock-Client
-function createDummyClient() {
-  return {
-    auth: {
-      getSession: () => Promise.resolve({ data: { session: null } }),
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      signOut: () => Promise.resolve({ error: null }),
-      signInWithPassword: () => Promise.resolve({ data: { session: null }, error: null }),
-      updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      signUp: () => Promise.resolve({ data: { user: null }, error: null }),
-      onAuthStateChange: () => ({ 
-        data: { subscription: { unsubscribe: () => {} } }, 
-      }),
-    },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: () => Promise.resolve({ data: null, error: null })
-        }),
-        order: () => ({
-          limit: () => Promise.resolve({ data: [], error: null })
-        }),
-      }),
-      update: () => ({
-        eq: () => Promise.resolve({ data: null, error: null })
-      }),
-      insert: () => Promise.resolve({ data: null, error: null }),
-      delete: () => ({
-        eq: () => Promise.resolve({ data: null, error: null })
-      }),
-    }),
-  } as any
 }

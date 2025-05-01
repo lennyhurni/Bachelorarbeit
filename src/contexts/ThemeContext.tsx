@@ -40,7 +40,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
       setInitialized(true)
     }
-  }, [user, loading, theme]); // Added theme to dependency to fix ESLint warning
+  }, [user, loading]); // Removed theme from dependency to prevent loops
 
   const changeTheme = (newTheme: ThemeType) => {
     if (newTheme === theme) return; // Skip if theme is the same
