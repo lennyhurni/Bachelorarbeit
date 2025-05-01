@@ -416,7 +416,7 @@ export default function ReflectionDetailPage() {
                         {getTooltipContent(
                           "Die KI-Analyse deiner Reflexion.",
                           "Hier siehst du die KI-basierte Analyse deiner Reflexion mit Bewertungen und Feedback.",
-                          "Dieser Bereich präsentiert die Ergebnisse der KI-gestützten Textanalyse deiner Reflexion, einschließlich quantitativer Bewertungen verschiedener Qualitätsdimensionen sowie qualitativer Erkenntnisse zu Stärken und Verbesserungspotenzialen."
+                          "Dieser Bereich präsentiert die Ergebnisse der KI-gestützten Textanalyse deiner Reflexion, einschliesslich quantitativer Bewertungen verschiedener Qualitätsdimensionen sowie qualitativer Erkenntnisse zu Stärken und Verbesserungspotenzialen."
                         )}
                       </p>
                     </TooltipContent>

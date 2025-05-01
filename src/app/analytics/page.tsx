@@ -552,7 +552,7 @@ export default function AnalyticsPage() {
                           {getTooltipContent(
                             "Wie tief du im Durchschnitt reflektierst.",
                             "Der Durchschnittswert der Reflexionstiefe auf einer Skala von 1-10, der angibt, wie gründlich du Themen untersuchst.",
-                            "Dieser Wert repräsentiert die durchschnittliche Tiefe deiner analytischen Betrachtung, die Fähigkeit, über oberflächliche Beobachtungen hinauszugehen und tieferliegende Bedeutungsebenen zu erschließen. Ein höherer Wert deutet auf eine differenziertere Auseinandersetzung mit dem Reflexionsgegenstand hin."
+                            "Dieser Wert repräsentiert die durchschnittliche Tiefe deiner analytischen Betrachtung, die Fähigkeit, über oberflächliche Beobachtungen hinauszugehen und tieferliegende Bedeutungsebenen zu erschliessen. Ein höherer Wert deutet auf eine differenziertere Auseinandersetzung mit dem Reflexionsgegenstand hin."
                           )}
                         </p>
                       </TooltipContent>
@@ -618,7 +618,7 @@ export default function AnalyticsPage() {
                           {getTooltipContent(
                             "Wie gut du über dein eigenes Denken nachdenkst.",
                             "Der Durchschnittswert der Metakognition auf einer Skala von 1-10, der angibt, wie bewusst du deine eigenen Denkprozesse reflektierst.",
-                            "Metakognition beschreibt deine Fähigkeit, dein eigenes Denken zu beobachten, zu analysieren und zu verstehen. Ein hoher Wert zeigt, dass du regelmäßig kritisch deine eigenen mentalen Modelle, Überzeugungen und Denkprozesse hinterfragst und dir der Faktoren bewusst bist, die deine Perspektiven beeinflussen."
+                            "Metakognition beschreibt deine Fähigkeit, dein eigenes Denken zu beobachten, zu analysieren und zu verstehen. Ein hoher Wert zeigt, dass du regelmässig kritisch deine eigenen mentalen Modelle, Überzeugungen und Denkprozesse hinterfragst und dir der Faktoren bewusst bist, die deine Perspektiven beeinflussen."
                           )}
                         </p>
                       </TooltipContent>
@@ -686,7 +686,7 @@ export default function AnalyticsPage() {
                               {getTooltipContent(
                                 "Zeigt, wie oft du reflektierst.",
                                 "Diese Grafik zeigt die Anzahl deiner Reflexionen im Zeitverlauf.",
-                                "Diese Analyse zeigt die zeitliche Verteilung deiner Reflexionsaktivitäten und hilft, Muster in deiner Reflexionspraxis zu identifizieren, wie regelmäßige Intervalle oder Phasen erhöhter Reflexionstätigkeit."
+                                "Diese Analyse zeigt die zeitliche Verteilung deiner Reflexionsaktivitäten und hilft, Muster in deiner Reflexionspraxis zu identifizieren, wie regelmässige Intervalle oder Phasen erhöhter Reflexionstätigkeit."
                               )}
                             </p>
                           </TooltipContent>
@@ -987,7 +987,7 @@ export default function AnalyticsPage() {
                       <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                         <p className="text-sm">
                           {getTooltipContent(
-                            "Deine größten Stärken beim Reflektieren.",
+                            "Deine grössten Stärken beim Reflektieren.",
                             "Basierend auf der Analyse deiner Reflexionen wurden diese Bereiche als deine Stärken identifiziert.",
                             "Diese KI-identifizierten Stärken basieren auf einer vergleichenden Analyse deiner Reflexionsmetriken, wobei Bereiche mit überdurchschnittlicher Leistung und konsistenten Qualitätsmustern hervorgehoben werden."
                           )}

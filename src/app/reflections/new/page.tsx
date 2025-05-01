@@ -1087,7 +1087,7 @@ export default function NewAdaptiveReflection() {
                         {getTooltipContent(
                           "Zeigt mehr Details zur KI-Analyse an.",
                           "Aktiviere diese Option, um detaillierte Informationen zur KI-Analyse und zum Bewertungsprozess anzuzeigen.",
-                          "Diese Option zeigt erweiterte Informationen zum algorithmischen Analyseprozess, einschließlich der verwendeten Kriterien, Gewichtungen und metakognitiven Parameter, die zur Bewertung deiner Reflexion herangezogen werden."
+                          "Diese Option zeigt erweiterte Informationen zum algorithmischen Analyseprozess, einschliesslich der verwendeten Kriterien, Gewichtungen und metakognitiven Parameter, die zur Bewertung deiner Reflexion herangezogen werden."
                         )}
                       </p>
                     </TooltipContent>
@@ -1510,7 +1510,7 @@ export default function NewAdaptiveReflection() {
                             {getTooltipContent(
                               "Hier siehst du das KI-Feedback zu deiner Reflexion.",
                               "Hier erhältst du detailliertes Feedback zu verschiedenen Aspekten deiner Reflexion, basierend auf KI-Analyse.",
-                              "Dieser Bereich zeigt die Ergebnisse der KI-Textanalyse deiner Reflexion, einschließlich quantitativer Bewertungen verschiedener Qualitätsdimensionen sowie qualitativer Erkenntnisse zu Stärken und Verbesserungspotenzialen."
+                              "Dieser Bereich zeigt die Ergebnisse der KI-Textanalyse deiner Reflexion, einschliesslich quantitativer Bewertungen verschiedener Qualitätsdimensionen sowie qualitativer Erkenntnisse zu Stärken und Verbesserungspotenzialen."
                             )}
                           </p>
                         </TooltipContent>

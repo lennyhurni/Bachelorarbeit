@@ -343,7 +343,7 @@ export default function HelpPage() {
                     <AccordionItem value="item-6">
                       <AccordionTrigger>Wie oft sollte ich reflektieren?</AccordionTrigger>
                       <AccordionContent>
-                        Die Häufigkeit hängt von Ihren persönlichen Zielen ab. Für optimale Lerneffekte empfehlen wir eine Reflexion nach bedeutsamen Ereignissen oder Lernerfahrungen. Eine regelmäßige wöchentliche Reflexion kann Ihnen helfen, kontinuierlich Ihre Reflexionsfähigkeit zu verbessern und langfristige Entwicklungen zu erkennen.
+                        Die Häufigkeit hängt von Ihren persönlichen Zielen ab. Für optimale Lerneffekte empfehlen wir eine Reflexion nach bedeutsamen Ereignissen oder Lernerfahrungen. Eine regelmässige wöchentliche Reflexion kann Ihnen helfen, kontinuierlich Ihre Reflexionsfähigkeit zu verbessern und langfristige Entwicklungen zu erkennen.
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-7">
@@ -480,7 +480,7 @@ export default function HelpPage() {
                           Wie die KI-Systeme zusammenarbeiten
                         </h5>
                         <p className="text-xs text-muted-foreground">
-                          Bei jeder Reflexionsanalyse arbeiten beide Systeme parallel: Die Google-API berechnet präzise numerische Werte für die KPIs, während das GPT-Modell eine tiefergehende inhaltliche Analyse durchführt. Diese Kombination bietet sowohl objektive Bewertungen durch die linguistische Analyse als auch kontextsensitives Verständnis durch das große Sprachmodell. Das System verfügt zudem über Fallback-Mechanismen, die eine Analyse auch dann ermöglichen, wenn einer der Dienste nicht verfügbar sein sollte.
+                          Bei jeder Reflexionsanalyse arbeiten beide Systeme parallel: Die Google-API berechnet präzise numerische Werte für die KPIs, während das GPT-Modell eine tiefergehende inhaltliche Analyse durchführt. Diese Kombination bietet sowohl objektive Bewertungen durch die linguistische Analyse als auch kontextsensitives Verständnis durch das grosse Sprachmodell. Das System verfügt zudem über Fallback-Mechanismen, die eine Analyse auch dann ermöglichen, wenn einer der Dienste nicht verfügbar sein sollte.
                         </p>
                       </div>
                     </div>
@@ -619,7 +619,7 @@ export default function HelpPage() {
                         <div className="p-3 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
                           <h5 className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">A - Action</h5>
                           <p className="text-xs text-emerald-600/80 dark:text-emerald-300/80">
-                            Welche konkreten Maßnahmen haben Sie ergriffen?
+                            Welche konkreten Massnahmen haben Sie ergriffen?
                           </p>
                         </div>
                         
@@ -676,7 +676,7 @@ export default function HelpPage() {
                       <div className="rounded-lg border p-4">
                         <h4 className="text-sm font-medium mb-1.5">Reflexionstiefe</h4>
                         <p className="text-xs text-muted-foreground">
-                          Das Ausmaß, in dem eine Reflexion über die reine Beschreibung hinausgeht und tiefere Bedeutungsebenen, Ursachen, Zusammenhänge oder verschiedene Perspektiven einbezieht.
+                          Das Ausmass, in dem eine Reflexion über die reine Beschreibung hinausgeht und tiefere Bedeutungsebenen, Ursachen, Zusammenhänge oder verschiedene Perspektiven einbezieht.
                         </p>
                       </div>
                       
