@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
@@ -6,12 +8,12 @@ export default function NotFound() {
       <p className="text-muted-foreground mb-8">
         Die angeforderte Seite wurde nicht gefunden oder existiert nicht mehr.
       </p>
-      <a 
+      <Link
         href="/"
         className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
       >
         Zurück zur Startseite
-      </a>
+      </Link>
     </div>
   )
 } 

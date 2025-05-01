@@ -137,7 +137,7 @@ export async function POST(request: Request): Promise<Response> {
     })
     
     // Check if existing reflection has values that should be preserved
-    let { data: existingReflection } = await supabase
+    const { data: existingReflection } = await supabase
       .from('reflections')
       .select('kpi_depth, kpi_coherence, kpi_metacognition, kpi_actionable')
       .eq('id', reflectionId)
