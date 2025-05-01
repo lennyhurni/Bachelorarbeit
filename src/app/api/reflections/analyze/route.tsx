@@ -908,9 +908,24 @@ Analysiere den folgenden Reflexionstext nach wissenschaftlichen Kriterien und th
 
 THEORETISCHER RAHMEN:
 Verwende Jennifer Moons hierarchisches Reflexionsmodell mit den Ebenen:
-1. BESCHREIBEND: Einfache Wiedergabe von Ereignissen ohne tiefere Analyse (naive Berichterstattung)
-2. ANALYTISCH: Identifikation von Mustern, Ursachen und Wirkungen (systematische Untersuchung)
-3. KRITISCH: Tiefergehende Betrachtung unter Berücksichtigung verschiedener Perspektiven, ethischer Implikationen und grösserer Kontexte (transformatives Reflektieren)
+
+1. BESCHREIBEND:
+   - Definition: Einfache Wiedergabe von Ereignissen ohne tiefere Analyse (naive Berichterstattung)
+   - Textliche Signale: Häufige Verwendung von Was/Wann/Wie ohne Warum; chronologische Darstellung; kaum Selbstbezug
+   - Typische Ausdrücke: "Ich habe gemacht...", "Es passierte...", "Dann haben wir..."
+   - Beispiel: "Gestern habe ich eine Präsentation gehalten. Ich habe alle Informationen vorgestellt und einige Fragen beantwortet."
+
+2. ANALYTISCH:
+   - Definition: Identifikation von Mustern, Ursachen und Wirkungen (systematische Untersuchung)
+   - Textliche Signale: Verbindung von Ereignissen mit persönlichen Erfahrungen; Suche nach Gründen und Zusammenhängen
+   - Typische Ausdrücke: "Ich habe bemerkt, dass...", "Möglicherweise liegt das daran, dass...", "Dies führte zu..."
+   - Beispiel: "Bei meiner Präsentation bemerkte ich, dass die komplexen Grafiken Verwirrung stifteten. Ich hätte sie vereinfachen sollen, da die Zielgruppe wenig Vorwissen hatte."
+
+3. KRITISCH:
+   - Definition: Tiefergehende Betrachtung unter Berücksichtigung verschiedener Perspektiven, ethischer Implikationen und grösserer Kontexte (transformatives Reflektieren)
+   - Textliche Signale: Multiperspektivische Betrachtung; Einbezug von Theorien; Hinterfragen von Grundannahmen; Selbstkritik
+   - Typische Ausdrücke: "Aus einer anderen Perspektive betrachtet...", "Dies widerspricht der Theorie von...", "Meine Annahme, dass... muss ich überdenken"
+   - Beispiel: "Meine Präsentationsschwierigkeiten zeigen mir, wie stark ich von akademischen Kommunikationsformen geprägt bin. Aus Sicht der Wirtschaft wäre ein kundenzentrierter Ansatz erfolgreicher gewesen. Dies hinterfragt meine Grundannahme, dass mehr Information automatisch zu besserem Verständnis führt."
 
 BEWERTUNGSKRITERIEN (Hatton & Smith, 1995):
 - Tiefe: Grad der Detailliertheit und inhaltlichen Differenzierung
@@ -925,9 +940,23 @@ ${feedbackDepth === "basic" ?
   "- Tiefgreifend: Ausführliche, differenzierte Analyse mit theoretischen Bezügen\n- Umfassend: Detaillierte Berücksichtigung aller Bewertungskriterien\n- Vielschichtig: Mehrperspektivische Betrachtung der Reflexionsinhalte" :
   "- Ausgewogen: Balance zwischen Tiefe und Prägnanz\n- Zielgerichtet: Fokus auf die wichtigsten 2-3 Verbesserungspunkte\n- Konstruktiv: Positive Aspekte hervorheben und Verbesserungspotential aufzeigen"}
 
+TONALITÄT DES FEEDBACKS:
+${feedbackDepth === "basic" ? 
+  "- Ermutigend: Betone Stärken klar und formuliere Verbesserungsvorschläge als positive Möglichkeiten\n- Zugänglich: Verwende einfache, klare Sprache ohne Fachbegriffe\n- Persönlich: Direkter, freundlicher Kommunikationsstil in Du-Form" : 
+  feedbackDepth === "detailed" ? 
+  "- Fachlich-konstruktiv: Präzise und differenzierte Ausdrucksweise mit angemessener Verwendung von Fachbegriffen\n- Umfassend: Ausgewogene Darstellung von Stärken und Entwicklungsfeldern\n- Wertschätzend: Trotz Detailtiefe stets den Lernfortschritt anerkennend" :
+  "- Konstruktiv-unterstützend: Balance zwischen Anerkennung und Entwicklungsmöglichkeiten\n- Klar: Verständliche Sprache mit gezieltem Einsatz von Fachbegriffen\n- Motivierend: Formuliere Kritik stets als Entwicklungschance"}
+
+FORMULIERUNG HANDLUNGSORIENTIERTER VORSCHLÄGE:
+- Konkret: Spezifische, umsetzbare Handlungsempfehlungen statt allgemeiner Ratschläge
+- Machbar: An das erkennbare Reflexionsniveau des Verfassers angepasst
+- Progressiv: Auf die nächste Entwicklungsstufe ausgerichtet (von beschreibend zu analytisch bzw. von analytisch zu kritisch)
+- Format: "Du könntest...", "Ein nächster Schritt wäre...", "Versuche beim nächsten Mal..."
+- Beispiel für beschreibende Ebene: "Versuche beim nächsten Mal nicht nur zu beschreiben was passiert ist, sondern auch zu erklären, warum es so kam und was du daraus gelernt hast."
+
 ANALYSE-AUSGABE:
 1. reflection_level: Eine der drei Kategorien (Beschreibend, Analytisch, Kritisch) basierend auf der dominierenden Reflexionsebene
-2. feedback: ${feedbackDepth === "basic" ? "Kurzes, prägnantes" : feedbackDepth === "detailed" ? "Ausführliches, tiefgreifendes" : "Ausgewogenes"} konstruktives Feedback zur Verbesserung der Reflexionsqualität nach den vier Bewertungskriterien
+2. feedback: ${feedbackDepth === "basic" ? "Kurzes, prägnantes" : feedbackDepth === "detailed" ? "Ausführliches, tiefgreifendes" : "Ausgewogenes"} konstruktives Feedback zur Verbesserung der Reflexionsqualität nach den vier Bewertungskriterien, mit mindestens einem konkreten handlungsorientierten Vorschlag
 3. insights: ${feedbackDepth === "basic" ? "2-3" : feedbackDepth === "detailed" ? "4-6" : "3-5"} zentrale Erkenntnisse aus der Reflexion, die den Kern der Reflexionsarbeit erfassen
 
 Antworte mit einem validen JSON-Objekt mit den Feldern: reflection_level, feedback, insights (Array).`

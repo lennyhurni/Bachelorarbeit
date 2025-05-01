@@ -247,6 +247,19 @@ export default function NewAdaptiveReflection() {
   // Add settings hook
   const { settings, updateSetting } = useUserSettings()
   
+  // Add helper function for tooltip content based on feedback depth
+  const getTooltipContent = (basic: string, standard: string, detailed: string) => {
+    switch (settings?.feedbackDepth || 'standard') {
+      case 'basic':
+        return basic;
+      case 'detailed':
+        return detailed;
+      case 'standard':
+      default:
+        return standard;
+    }
+  }
+
   // Create a function to handle feedback depth change
   const handleFeedbackDepthChange = (value: string) => {
     updateSetting('feedbackDepth', value)
@@ -608,47 +621,145 @@ export default function NewAdaptiveReflection() {
         
         {/* Feedback entsprechend der ausgewählten Tiefe */}
         {feedbackDepth === "basic" && (
-          <div className="p-4 border rounded-lg">
-            <h3 className="text-sm font-medium mb-3 flex items-center gap-1.5">
-              <List className="h-4 w-4 text-primary" />
-              Reflexionsqualität: {avgScore < 40 ? "Anfänger" : avgScore < 70 ? "Fortgeschritten" : "Fortgeschritten"}
-            </h3>
-            
-            <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
-              <div 
-                className="h-full bg-primary rounded-full transition-all duration-500" 
-                style={{ width: `${avgScore}%` }} 
-              />
+          <div className="space-y-4">
+            {/* Sehr einfache KI-Bewertung - deutlich reduziert */}
+            <div className="p-4 border rounded-lg flex flex-col items-center">
+              <div className="flex items-center justify-center mb-3">
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  !KPIs[0].value ? "bg-muted text-muted-foreground" :
+                  avgScore < 40 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" :
+                  avgScore < 70 ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" :
+                  "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                }`}>
+                  {!KPIs[0].value ? "Noch nicht analysiert" :
+                   avgScore < 40 ? "Beschreibend" :
+                   avgScore < 70 ? "Analytisch" :
+                   "Kritisch"}
+                </div>
+              </div>
+              
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-3">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    !KPIs[0].value ? "w-0" :
+                    avgScore < 40 ? "bg-amber-500 dark:bg-amber-500/70" : 
+                    avgScore < 70 ? "bg-blue-500 dark:bg-blue-500/70" : 
+                    "bg-emerald-500 dark:bg-emerald-500/70"
+                  }`}
+                  style={{ width: KPIs[0].value ? `${avgScore}%` : '0%' }} 
+                />
+              </div>
+              
+              {!KPIs[0].value ? (
+                <p className="text-sm text-center text-muted-foreground">
+                  Klicke auf "Mit KI analysieren", um Feedback zu erhalten.
+                </p>
+              ) : (
+                <p className="text-sm text-center">
+                  {avgScore < 40 ? "Deine Reflexion ist überwiegend beschreibend." : 
+                   avgScore < 70 ? "Deine Reflexion zeigt gute analytische Elemente." : 
+                   "Deine Reflexion erreicht ein kritisch-reflektierendes Niveau."}
+                </p>
+              )}
             </div>
-            
-            <p className="text-xs text-muted-foreground">
-              Schreiben Sie weiter an Ihrer Reflexion. Die detaillierte Analyse wird nach dem Speichern verfügbar sein.
-            </p>
+
+            {/* Nur zeigen, wenn bereits analysiert wurde */}
+            {KPIs[0].value > 0 && (
+              <div className="border rounded-lg p-4">
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary" />
+                  Wichtigster Verbesserungstipp
+                </h3>
+                
+                <p className="text-sm">
+                  {avgScore < 40 ? 
+                    "Gehe über die reine Beschreibung hinaus - frage dich öfter \"Warum?\"" : 
+                   avgScore < 70 ? 
+                    "Betrachte die Situation aus verschiedenen Perspektiven" : 
+                    "Verknüpfe deine Reflexion mit theoretischen Konzepten"}
+                </p>
+              </div>
+            )}
           </div>
         )}
         
         {feedbackDepth === "standard" && (
-          <div className="space-y-3">
-            {KPIs.map(kpi => (
-              <div key={kpi.name} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: kpi.color }}></div>
-                    <span className="text-sm font-medium">{kpi.name}</span>
-                  </div>
-                  <span className="text-sm font-medium">{kpi.value}%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500" 
-                    style={{ 
-                      width: `${kpi.value}%`,
-                      backgroundColor: kpi.color
-                    }} 
-                  />
+          <div className="space-y-4">
+            {/* Erweitertes Standard-Feedback mit besseren Erklärungen */}
+            <div className="mb-2">
+              <div className="flex justify-between items-center mb-1">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <BrainCircuit className="h-4 w-4 text-primary" />
+                  Reflexionsebene
+                </h3>
+                <div className={`text-xs px-2 py-1 rounded-full ${
+                  avgScore < 40 ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300" :
+                  avgScore < 70 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300" :
+                  "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                }`}>
+                  {avgScore < 40 ? "Beschreibend" : avgScore < 70 ? "Analytisch" : "Kritisch"}
                 </div>
               </div>
-            ))}
+              <p className="text-xs text-muted-foreground mb-4">
+                {avgScore < 40 ? 
+                  "Deine Reflexion ist überwiegend beschreibend - du erklärst, was passiert ist, aber analysierst weniger die tieferen Gründe oder Bedeutungen." : 
+                avgScore < 70 ? 
+                  "Deine Reflexion ist analytisch - du untersuchst Ursachen und Zusammenhänge und bietest Erklärungen für das Geschehene." : 
+                  "Deine Reflexion ist kritisch - du betrachtest das Thema aus verschiedenen Blickwinkeln, hinterfragst Annahmen und ziehst tiefere Schlüsse."}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {KPIs.map(kpi => (
+                <div key={kpi.name} className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: kpi.color }}></div>
+                      <span className="text-sm font-medium">{kpi.name}</span>
+                    </div>
+                    <span className="text-sm font-medium">{kpi.value}%</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500" 
+                      style={{ 
+                        width: `${kpi.value}%`,
+                        backgroundColor: kpi.color
+                      }} 
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {kpi.name === "Reflexionstiefe" && 
+                      (kpi.value < 40 ? 
+                        "Hauptsächlich beschreibend, wenig Analyse" : 
+                      kpi.value < 70 ? 
+                        "Gute Analyse der Situation und Ursachen" : 
+                        "Tiefgehende Betrachtung mit mehreren Ebenen")}
+                    
+                    {kpi.name === "Kohärenz" && 
+                      (kpi.value < 40 ? 
+                        "Die Struktur könnte klarer sein" : 
+                      kpi.value < 70 ? 
+                        "Gut strukturiert mit logischem Aufbau" : 
+                        "Exzellente Struktur mit klarem rotem Faden")}
+                    
+                    {kpi.name === "Metakognition" && 
+                      (kpi.value < 40 ? 
+                        "Wenig Reflexion über eigene Denkprozesse" : 
+                      kpi.value < 70 ? 
+                        "Gute Betrachtung eigener Denkmuster" : 
+                        "Tiefe Erkundung eigener Denkweisen und Annahmen")}
+                    
+                    {kpi.name === "Handlungsorientierung" && 
+                      (kpi.value < 40 ? 
+                        "Wenig konkrete Schlussfolgerungen" : 
+                      kpi.value < 70 ? 
+                        "Einige praktische Erkenntnisse vorhanden" : 
+                        "Klare, umsetzbare Handlungsschritte abgeleitet")}
+                  </p>
+                </div>
+              ))}
+            </div>
             
             {/* Reflection progress indicator */}
             <div className="mt-2 pt-2 border-t">
@@ -666,6 +777,55 @@ export default function NewAdaptiveReflection() {
                   style={{ width: `${avgScore}%` }} 
                 />
               </div>
+            </div>
+            
+            {/* Erweiterte Tipps */}
+            <div className={`p-3 rounded-md border mt-4 ${
+              qualityLevel === "low" ? "border-amber-200 bg-amber-50/50 dark:border-amber-900/30 dark:bg-amber-950/10" :
+              qualityLevel === "medium" ? "border-blue-200 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-950/10" :
+              "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-950/10"
+            }`}>
+              <h3 className="text-sm font-medium mb-1.5">So kannst du deine Reflexion verbessern:</h3>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                {avgScore < 40 && (
+                  <>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-amber-500" />
+                      <span>Stelle öfter die Frage "Warum?" statt nur "Was?"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-amber-500" />
+                      <span>Verbinde die Erfahrung mit deinen Gefühlen und Gedanken</span>
+                    </li>
+                  </>
+                )}
+                
+                {avgScore >= 40 && avgScore < 70 && (
+                  <>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-blue-500" />
+                      <span>Betrachte die Situation aus anderen Perspektiven</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-blue-500" />
+                      <span>Verknüpfe deine Erkenntnisse stärker mit konkreten Handlungsschritten</span>
+                    </li>
+                  </>
+                )}
+                
+                {avgScore >= 70 && (
+                  <>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-emerald-500" />
+                      <span>Verbinde deine Erkenntnisse mit theoretischen Konzepten</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-emerald-500" />
+                      <span>Reflektiere tiefer über Veränderungen in deinen Annahmen und Denkweisen</span>
+                    </li>
+                  </>
+                )}
+              </ul>
             </div>
           </div>
         )}
@@ -686,35 +846,83 @@ export default function NewAdaptiveReflection() {
                           <span className="text-sm font-bold">{kpi.value}%</span>
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="w-60">
+                      <TooltipContent side="right" align="start" className="w-72">
                         <div className="space-y-2">
                           <p className="text-sm font-medium">
-                            {kpi.name === "Reflexionstiefe" && "Tiefe Ihrer Analyse"}
+                            {kpi.name === "Reflexionstiefe" && "Tiefe deiner Analyse"}
                             {kpi.name === "Kohärenz" && "Klarheit & Struktur"}
-                            {kpi.name === "Metakognition" && "Reflexion über Ihr Denken"}
+                            {kpi.name === "Metakognition" && "Reflexion über dein Denken"}
                             {kpi.name === "Handlungsorientierung" && "Konkrete nächste Schritte"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend Sie über Erfahrungen reflektieren - von beschreibend bis kritisch-analysierend."}
-                            {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in Ihrem Text."}
-                            {kpi.name === "Metakognition" && "Erfasst, wie bewusst Sie über Ihr eigenes Denken und Ihre eigenen Lernprozesse reflektieren."}
-                            {kpi.name === "Handlungsorientierung" && "Bewertet, ob Sie konkrete nächste Schritte oder Anwendungsmöglichkeiten aus Ihren Erkenntnissen ableiten."}
+                            {kpi.name === "Reflexionstiefe" && "Misst, wie tiefgehend du über Erfahrungen reflektierst - von beschreibend bis kritisch-analysierend."}
+                            
+                            {kpi.name === "Kohärenz" && "Bewertet die Klarheit, logische Struktur und den Zusammenhang in deinem Text."}
+                            
+                            {kpi.name === "Metakognition" && "Erfasst, wie bewusst du über dein eigenes Denken und deine eigenen Lernprozesse reflektierst."}
+                            
+                            {kpi.name === "Handlungsorientierung" && "Bewertet, ob du konkrete nächste Schritte oder Anwendungsmöglichkeiten aus deinen Erkenntnissen ableitest."}
                           </p>
                           
-                          {/* Enhancement tips per dimension */}
+                          {/* Verbesserte Tipps bei Werten unter 60% */}
                           {kpi.value < 60 && (
-                            <div className={`p-2 rounded-sm mt-1 text-xs ${
-                              kpi.name === "Reflexionstiefe" ? "bg-blue-50 dark:bg-blue-950/30" :
-                              kpi.name === "Kohärenz" ? "bg-amber-50 dark:bg-amber-950/30" :
-                              kpi.name === "Metakognition" ? "bg-purple-50 dark:bg-purple-950/30" :
-                              "bg-emerald-50 dark:bg-emerald-950/30"
+                            <div className={`p-2 mt-2 rounded-md ${
+                              qualityLevel === "low" ? "bg-amber-50/70 dark:bg-amber-900/20" :
+                              qualityLevel === "medium" ? "bg-blue-50/70 dark:bg-blue-900/20" :
+                              "bg-emerald-50/70 dark:bg-emerald-900/20"
                             }`}>
-                              <strong>Tipp:</strong> {
-                                kpi.name === "Reflexionstiefe" ? "Fragen Sie sich 'Warum?' und analysieren Sie die Gründe hinter Ereignissen und Reaktionen." :
-                                kpi.name === "Kohärenz" ? "Verbinden Sie Ihre Gedanken mit klaren Übergängen und logischen Verbindungen." :
-                                kpi.name === "Metakognition" ? "Reflektieren Sie darüber, wie sich Ihr Denken durch diese Erfahrung verändert hat." :
-                                "Formulieren Sie konkrete nächste Schritte, die Sie aufgrund Ihrer Erkenntnisse unternehmen werden."
-                              }
+                              <p className="text-xs font-medium mb-1">Tipps zur Verbesserung:</p>
+                              {kpi.name === "Reflexionstiefe" && (
+                                <ul className="text-xs space-y-1 pl-2">
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Stelle mehrfach die Frage "Warum?" zu jeder Beobachtung</span>
+                                  </li>
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Betrachte das Thema aus verschiedenen Blickwinkeln</span>
+                                  </li>
+                                </ul>
+                              )}
+                              
+                              {kpi.name === "Kohärenz" && (
+                                <ul className="text-xs space-y-1 pl-2">
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Strukturiere deinen Text mit Einleitung, Hauptteil und Schluss</span>
+                                  </li>
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Verwende Übergangsphrasen zwischen Absätzen</span>
+                                  </li>
+                                </ul>
+                              )}
+                              
+                              {kpi.name === "Metakognition" && (
+                                <ul className="text-xs space-y-1 pl-2">
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Reflektiere explizit über deine eigenen Denkprozesse</span>
+                                  </li>
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Beschreibe, wie sich deine Gedanken verändert haben</span>
+                                  </li>
+                                </ul>
+                              )}
+                              
+                              {kpi.name === "Handlungsorientierung" && (
+                                <ul className="text-xs space-y-1 pl-2">
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Leite konkrete, spezifische Handlungsschritte ab</span>
+                                  </li>
+                                  <li className="flex items-start gap-1.5">
+                                    <ArrowRight className="h-3 w-3 mt-px text-amber-500" />
+                                    <span>Beschreibe, wie du das Gelernte anwenden wirst</span>
+                                  </li>
+                                </ul>
+                              )}
                             </div>
                           )}
                         </div>
@@ -732,60 +940,62 @@ export default function NewAdaptiveReflection() {
                   <h4 className="text-sm font-medium">KI-Analyse Erklärung</h4>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Diese Analyse nutzt NLP-Algorithmen, um Ihre Reflexion zu bewerten.
-                  Die vier Dimensionen werden anhand linguistischer Muster und semantischer Strukturen gemessen.
+                  Diese Analyse nutzt NLP-Algorithmen, um deine Reflexion zu bewerten.
+                  Die vier Dimensionen werden anhand linguistischer Muster und semantischer Beziehungen gemessen.
                 </p>
               </div>
             )}
             
-            {/* Reflexionsebenen-Status */}
-            <div className="p-3 rounded-lg border border-border bg-muted/20">
-              <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+            {/* Vereinfachte Reflexionsebenen-Analyse */}
+            <div className="p-4 rounded-lg border border-border bg-muted/20 mt-4">
+              <h3 className="text-sm font-medium mb-3 flex items-center gap-1.5">
                 <BrainCircuit className="h-4 w-4 text-primary" />
                 Reflexionsebene
               </h3>
               
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className={`text-xs px-2 py-1 rounded-full ${
-                  avgScore < 40 ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" :
-                  avgScore < 70 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" :
-                  "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className={`p-2 text-center text-xs rounded border ${
+                  avgScore < 40 
+                  ? "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800/30" 
+                  : "bg-muted/30 text-muted-foreground border-muted/50"
                 }`}>
-                  {avgScore < 40 ? "Beschreibend" : avgScore < 70 ? "Analytisch" : "Kritisch"}
+                  <div className="font-medium mb-1">Beschreibend</div>
+                  <p className="text-[10px] leading-tight">Was ist passiert?</p>
                 </div>
                 
-                <span className="text-xs text-muted-foreground">basierend auf Moon's Reflexionsmodell</span>
+                <div className={`p-2 text-center text-xs rounded border ${
+                  avgScore >= 40 && avgScore < 70 
+                  ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800/30" 
+                  : "bg-muted/30 text-muted-foreground border-muted/50"
+                }`}>
+                  <div className="font-medium mb-1">Analytisch</div>
+                  <p className="text-[10px] leading-tight">Warum ist es passiert?</p>
+                </div>
+                
+                <div className={`p-2 text-center text-xs rounded border ${
+                  avgScore >= 70 
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800/30" 
+                  : "bg-muted/30 text-muted-foreground border-muted/50"
+                }`}>
+                  <div className="font-medium mb-1">Kritisch</div>
+                  <p className="text-[10px] leading-tight">Was bedeutet es?</p>
+                </div>
               </div>
               
-              <div className="grid grid-cols-3 gap-1">
-                <div className={`px-1 py-0.5 text-center text-xs rounded ${avgScore < 40 ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" : "bg-muted/50 text-muted-foreground"}`}>
-                  Beschreibend
-                </div>
-                <div className={`px-1 py-0.5 text-center text-xs rounded ${avgScore >= 40 && avgScore < 70 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" : "bg-muted/50 text-muted-foreground"}`}>
-                  Analytisch
-                </div>
-                <div className={`px-1 py-0.5 text-center text-xs rounded ${avgScore >= 70 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-muted/50 text-muted-foreground"}`}>
-                  Kritisch
-                </div>
+              <div className="text-xs text-muted-foreground">
+                <p><span className="font-medium">Nächste Entwicklung:</span> {
+                  avgScore < 40 
+                  ? "Stelle mehr 'Warum'-Fragen, um auf die analytische Ebene zu gelangen." 
+                  : avgScore < 70 
+                  ? "Betrachte verschiedene Perspektiven für die kritische Ebene."
+                  : "Vertiefe deine kritische Reflexion durch theoretische Konzepte."
+                }</p>
               </div>
             </div>
           </>
         )}
       </div>
     )
-  }
-
-  // Add helper function for tooltip content based on feedback depth
-  const getTooltipContent = (basic: string, standard: string, detailed: string) => {
-    switch (settings?.feedbackDepth || 'standard') {
-      case 'basic':
-        return basic;
-      case 'detailed':
-        return detailed;
-      case 'standard':
-      default:
-        return standard;
-    }
   }
 
   return (

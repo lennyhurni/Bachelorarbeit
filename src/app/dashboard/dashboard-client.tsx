@@ -372,7 +372,7 @@ export default function DashboardClient() {
         <div className="flex items-center gap-4">
           <div className="flex items-center space-x-2">
             <TooltipProvider>
-              <Tooltip>
+              <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-2">
                     <Label htmlFor="feedback-depth" className="text-sm">Feedback-Tiefe:</Label>
@@ -391,7 +391,7 @@ export default function DashboardClient() {
                     </Select>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
+                <TooltipContent side="bottom" align="center" className="max-w-[280px] text-xs">
                   <p className="text-sm">
                     {getContentByFeedbackDepth(
                       "Einfaches Feedback mit klaren, leicht verständlichen Erklärungen.",
@@ -414,11 +414,11 @@ export default function DashboardClient() {
               <BarChart className="h-4 w-4 text-muted-foreground" />
               Reflexionstiefe
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="end" className="max-w-[280px] text-xs">
                     <p className="text-sm">{getTooltipByFeedbackDepth('depth')}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -445,11 +445,11 @@ export default function DashboardClient() {
               <LineChart className="h-4 w-4 text-muted-foreground" />
               Kohärenz
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="end" className="max-w-[280px] text-xs">
                     <p className="text-sm">{getTooltipByFeedbackDepth('coherence')}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -476,11 +476,11 @@ export default function DashboardClient() {
               <PieChart className="h-4 w-4 text-muted-foreground" />
               Metakognition
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="end" className="max-w-[280px] text-xs">
                     <p className="text-sm">{getTooltipByFeedbackDepth('metacognition')}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -507,11 +507,11 @@ export default function DashboardClient() {
               <Target className="h-4 w-4 text-muted-foreground" />
               Handlungsorientierung
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="end" className="max-w-[280px] text-xs">
                     <p className="text-sm">{getTooltipByFeedbackDepth('actionable')}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -536,19 +536,19 @@ export default function DashboardClient() {
       {/* Main content section - simplified to two columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Left column: Feedback-Impuls */}
-        <Card className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/30">
+        <Card className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/10 dark:to-orange-950/10 border-amber-200 dark:border-amber-900/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-lg">
                 <span className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-amber-500" />
+                  <Lightbulb className="h-5 w-5 text-amber-500 dark:text-amber-400" />
                   Reflexionsimpuls
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={300}>
                       <TooltipTrigger asChild>
                         <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                         <p className="text-sm">
                           {getContentByFeedbackDepth(
                             "Ein Thema für deine nächste Reflexion.",
@@ -570,13 +570,13 @@ export default function DashboardClient() {
               </CardDescription>
             </div>
             <TooltipProvider>
-              <Tooltip>
+              <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleGenerateNewPrompt}>
                     <RefreshCw className={`h-4 w-4 ${processingPrompt ? 'animate-spin' : ''}`} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                   <p className="text-sm">
                     {getContentByFeedbackDepth(
                       "Neuen Impuls generieren",
@@ -589,14 +589,14 @@ export default function DashboardClient() {
             </TooltipProvider>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-white dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-800/30">
+            <div className="p-4 bg-white dark:bg-amber-950/15 rounded-lg border border-amber-200 dark:border-amber-900/20">
               <p className="text-lg font-medium text-center italic leading-relaxed">
                 {currentPrompt || "Wie hat sich dein Verständnis zu diesem Thema im Laufe der Zeit entwickelt?"}
               </p>
             </div>
             <div className="mt-4 flex justify-end">
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <Button asChild>
                       <Link href="/reflections/new" className="flex items-center gap-2">
@@ -605,7 +605,7 @@ export default function DashboardClient() {
                       </Link>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                     <p className="text-sm">
                       {getContentByFeedbackDepth(
                         "Starte eine neue Reflexion",
@@ -621,17 +621,17 @@ export default function DashboardClient() {
         </Card>
         
         {/* Right column: KI-Reflexionsanalyse card */}
-        <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800/30">
+        <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/10 dark:to-indigo-950/10 border-blue-200 dark:border-blue-900/20">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               KI-Reflexionsanalyse
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
+                  <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                     <p className="text-sm">
                       {getContentByFeedbackDepth(
                         "Diese Analyse zeigt dir, wie gut deine Reflexionen sind.",
@@ -663,7 +663,7 @@ export default function DashboardClient() {
               </div>
             ) : (
               <div className="space-y-5">
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-100 dark:border-blue-800/30 text-sm">
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/15 rounded-lg border border-blue-100 dark:border-blue-900/20 text-sm">
                   {settings.feedbackDepth === 'basic' ? (
                     // Einfache Empfehlungen
                     <>
@@ -754,14 +754,14 @@ export default function DashboardClient() {
                       <div className="flex gap-1 flex-shrink-0">
                         {(reflection.kpi_depth ?? 0) >= 7 && (
                           <TooltipProvider>
-                            <Tooltip>
+                            <Tooltip delayDuration={300}>
                               <TooltipTrigger>
                                 <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950">
                                   <BarChart className="h-3 w-3 mr-1" />
                                   {reflection.kpi_depth ?? 0}
                                 </Badge>
                               </TooltipTrigger>
-                              <TooltipContent>
+                              <TooltipContent side="top" align="center" className="max-w-[280px] text-xs">
                                 <p className="text-xs">Reflexionstiefe: {reflection.kpi_depth ?? 0}/10</p>
                               </TooltipContent>
                             </Tooltip>

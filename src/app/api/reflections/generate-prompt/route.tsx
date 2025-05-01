@@ -131,10 +131,8 @@ async function generateReflectionPrompt(reflections: any[], feedbackDepth: strin
       if (reflection.kpi_metacognition) context += `Metakognition: ${reflection.kpi_metacognition}/10\n`;
       if (reflection.kpi_actionable) context += `Handlungsorientierung: ${reflection.kpi_actionable}/10\n`;
       
-      // Only include content for the most recent reflection to avoid token limits
-      if (index === 0) {
-        context += `Auszug: ${reflection.content.substring(0, 500)}${reflection.content.length > 500 ? "..." : ""}\n`;
-      }
+      // Include full content for all reflections
+      context += `Inhalt: ${reflection.content}\n`;
       
       context += `Datum: ${new Date(reflection.created_at).toLocaleDateString()}\n\n`;
     });
@@ -160,9 +158,28 @@ Bewertungskriterien von Reflexionen:
 - Metakognition: Bewusstsein über eigene Denk- und Lernprozesse
 - Handlungsorientierung: Ableitung konkreter Massnahmen und Verhaltensänderungen
 
+ANALYSE DER REFLEXIONSHISTORIE:
+1. Identifiziere das vorherrschende Reflexionsniveau des Nutzers (insbesondere in der neuesten Reflexion)
+2. Erkenne Themen und Muster, die in mehreren Reflexionen auftreten
+3. Beachte die KPI-Werte, besonders Bereiche mit Verbesserungspotential (niedrigere Werte)
+4. Achte auf den tatsächlichen Inhalt der neuesten Reflexion, nicht nur auf Metadaten
+
+PROGRESSION DES REFLEXIONSNIVEAUS:
+- Wenn die Person überwiegend auf BESCHREIBENDER Ebene reflektiert:
+  → Formuliere einen Impuls, der zu analytischem Denken anregt (nach Ursachen, Wirkungen, Mustern fragen)
+  → Beispiel: "Welche Muster erkennst du in deinen Reaktionen auf ähnliche Situationen?"
+
+- Wenn die Person bereits ANALYTISCH reflektiert:
+  → Rege kritisches, multiperspektivisches Denken an
+  → Beispiel: "Wie würde sich deine Analyse verändern, wenn du die Situation aus einer völlig anderen Perspektive betrachtest?"
+
+- Wenn die Person bereits KRITISCH reflektiert:
+  → Fordere zur Vertiefung oder zum Transferdenken auf
+  → Beispiel: "Inwiefern verändert diese Erkenntnis deine grundlegenden Annahmen über dein Fachgebiet?"
+
 Der Reflexionsimpuls soll:
-1. Die bisherigen Reflexionsmuster berücksichtigen und darauf aufbauen
-2. Die Person zu einem tieferen Reflexionsniveau anregen (z.B. von beschreibend zu analytisch)
+1. Direkt auf Themen und Inhalte der neuesten Reflexion Bezug nehmen
+2. Die Person gezielt zur nächsthöheren Reflexionsebene anregen
 3. Als offene Frage oder Denkanstoss formuliert sein
 4. In einem einladenden, nicht akademischen Ton verfasst sein
 5. Eine Komplexität auf ${promptComplexity}em Niveau haben
