@@ -87,7 +87,7 @@ export default function LLMResourcePage() {
                     <h3 className="font-medium">Parameter und Skalierung</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Die Leistungsfähigkeit von LLMs skaliert mit ihrer Größe. Moderne Modelle haben Hunderte von Milliarden 
+                    Die Leistungsfähigkeit von LLMs skaliert mit ihrer Grösse. Moderne Modelle haben Hunderte von Milliarden 
                     Parameter, was zu emergenten Fähigkeiten führt.
                   </p>
                 </div>
@@ -102,7 +102,7 @@ export default function LLMResourcePage() {
             <CardContent className="prose prose-slate dark:prose-invert">
               <p>
                 Die GPT (Generative Pre-trained Transformer) Familie von OpenAI ist eine der bekanntesten LLM-Reihen und 
-                hat die Entwicklung im Bereich der KI maßgeblich vorangetrieben.
+                hat die Entwicklung im Bereich der KI massgeblich vorangetrieben.
               </p>
               
               <div className="not-prose">
@@ -143,7 +143,7 @@ export default function LLMResourcePage() {
               
               <p>
                 Jede Generation von GPT hat nicht nur die Textgenerierung verbessert, sondern auch tiefere Verständnisfähigkeiten 
-                und die Fähigkeit, aus Kontext zu lernen. Diese Modelle haben gezeigt, dass mit zunehmender Größe und Komplexität 
+                und die Fähigkeit, aus Kontext zu lernen. Diese Modelle haben gezeigt, dass mit zunehmender Grösse und Komplexität 
                 emergente Fähigkeiten entstehen können - Fähigkeiten, die nicht explizit trainiert wurden, sondern aus der Skalierung resultieren.
               </p>
             </CardContent>
@@ -188,7 +188,7 @@ export default function LLMResourcePage() {
             </CardContent>
             <CardFooter>
               <p className="text-xs text-muted-foreground">
-                Die LLM-Landschaft entwickelt sich rasant weiter, mit neuen Modellen, die regelmäßig veröffentlicht werden und 
+                Die LLM-Landschaft entwickelt sich rasant weiter, mit neuen Modellen, die regelmässig veröffentlicht werden und 
                 immer neue Fähigkeiten und Verbesserungen bieten.
               </p>
             </CardFooter>
@@ -279,7 +279,7 @@ export default function LLMResourcePage() {
                   <h5 className="font-medium">Personalisiertes Feedback</h5>
                 </div>
                 <p className="text-sm">
-                  Basierend auf der Analyse können LLMs maßgeschneidertes Feedback geben, das auf die spezifischen Stärken und 
+                  Basierend auf der Analyse können LLMs massgeschneidertes Feedback geben, das auf die spezifischen Stärken und 
                   Entwicklungsbereiche des Reflektierenden eingeht.
                 </p>
               </div>

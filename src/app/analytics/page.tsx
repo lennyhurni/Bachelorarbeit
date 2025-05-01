@@ -8,10 +8,21 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { BarChart4, Brain, LineChart as LineChartIcon, PieChart as PieChartIcon, TrendingUp, Calendar, Target, AlertTriangle, Sparkles, ArrowRight } from "lucide-react"
+import { BarChart4, Brain, LineChart as LineChartIcon, PieChart as PieChartIcon, TrendingUp, Calendar, Target, AlertTriangle, Sparkles, ArrowRight, HelpCircle, Info } from "lucide-react"
 import RequireAuth from "@/components/RequireAuth"
 import Link from "next/link"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart as RePieChart, Pie, Cell, LineChart, Line } from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart as RePieChart, Pie, Cell, LineChart, Line } from "recharts"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useUserSettings } from "@/hooks/useUserSettings"
+import { 
+  SubTabs, 
+  MainTabsList, 
+  MainTabTrigger, 
+  MainTabContent,
+  SubTabsList, 
+  SubTabTrigger, 
+  SubTabContent 
+} from "@/components/ui/nested-tabs"
 
 interface Reflection {
   id: string
@@ -66,6 +77,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState("all")
   const router = useRouter()
+  const { settings } = useUserSettings()
   
   // Colors for charts
   const COLORS = ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981']
@@ -338,6 +350,19 @@ export default function AnalyticsPage() {
     return new Date(dateString).toLocaleDateString('de-DE', options)
   }
   
+  // Helper function for tooltip content based on feedback depth
+  const getTooltipContent = (basic: string, standard: string, detailed: string) => {
+    switch (settings?.feedbackDepth || 'standard') {
+      case 'basic':
+        return basic;
+      case 'detailed':
+        return detailed;
+      case 'standard':
+      default:
+        return standard;
+    }
+  }
+  
   if (loading) {
     return (
       <RequireAuth>
@@ -410,575 +435,627 @@ export default function AnalyticsPage() {
   
   return (
     <RequireAuth>
-      <div className="container py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="container py-8 max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Reflexionsanalyse</h1>
-            <p className="text-muted-foreground">
-              Detaillierte Analyse deiner {analytics.totalReflections} Reflexionen
-            </p>
+            <h1 className="text-3xl font-bold">Reflexionsanalyse</h1>
+            <p className="text-muted-foreground">Detaillierte Analysen und Trends deiner Reflexionen</p>
           </div>
           
           <div className="flex items-center gap-4">
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Zeitraum wählen" />
+                <SelectValue placeholder="Alle Reflexionen" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle Zeit</SelectItem>
+                <SelectItem value="all">Alle Reflexionen</SelectItem>
                 <SelectItem value="week">Letzte Woche</SelectItem>
                 <SelectItem value="month">Letzter Monat</SelectItem>
                 <SelectItem value="year">Letztes Jahr</SelectItem>
               </SelectContent>
             </Select>
             
-            <Button variant="outline" onClick={fetchAnalytics}>
-              Aktualisieren
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p>
+                    {getTooltipContent(
+                      "Diese Seite zeigt dir Analysen deiner Reflexionen über Zeit.",
+                      "Hier siehst du detaillierte Analysen und Trends deiner Reflexionen über Zeit. Wähle einen Zeitraum aus, um verschiedene Aspekte deiner Reflexionen zu untersuchen.",
+                      "Diese analytische Übersicht visualisiert die zeitliche Entwicklung deiner Reflexionsqualität, thematische Verteilungen und metakognitive Muster. Die Daten werden kontinuierlich aktualisiert und können nach verschiedenen Zeiträumen gefiltert werden."
+                    )}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
-
-        <Tabs defaultValue="overview" className="mb-8">
-          <TabsList className="mb-4">
-            <TabsTrigger value="overview">Übersicht</TabsTrigger>
-            <TabsTrigger value="kpis">KPI-Metriken</TabsTrigger>
-            <TabsTrigger value="trends">Trends & Entwicklung</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* KPI Score Card */}
-              <Card className="shadow-md md:col-span-2">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart4 className="h-5 w-5 text-primary" />
-                    KPI-Übersicht
+        
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+          </div>
+        ) : error ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Fehler</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        ) : analytics && analytics.totalReflections > 0 ? (
+          <>
+            {/* KPI Overview Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BarChart4 className="h-4 w-4 text-primary" />
+                      <span>Reflexionen</span>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Anzahl deiner Reflexionen im gewählten Zeitraum.",
+                              "Gesamtanzahl deiner Reflexionen im gewählten Zeitraum.",
+                              "Die Gesamtanzahl der erfassten Reflexionseinträge im ausgewählten Zeitfenster, die als Datenbasis für alle dargestellten Analysen dient."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </CardTitle>
-                  <CardDescription>
-                    Durchschnittliche NLP-basierte Bewertungen deiner Reflexionen
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          {
-                            name: "Tiefe",
-                            value: analytics.avgMetrics.depth,
-                            color: "#3b82f6",
-                            max: 10
-                          },
-                          {
-                            name: "Kohärenz",
-                            value: analytics.avgMetrics.coherence,
-                            color: "#f59e0b",
-                            max: 10
-                          },
-                          {
-                            name: "Metakognition",
-                            value: analytics.avgMetrics.metacognition,
-                            color: "#8b5cf6",
-                            max: 10
-                          },
-                          {
-                            name: "Handlungsorientierung",
-                            value: analytics.avgMetrics.actionable,
-                            color: "#10b981",
-                            max: 10
-                          }
-                        ]}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="name" />
-                        <YAxis domain={[0, 10]} />
-                        <Tooltip 
-                          formatter={(value) => [`${value}/10`, "Punktzahl"]}
-                        />
-                        <Bar dataKey="value" name="Punktzahl">
-                          {COLORS.map((color, index) => (
-                            <Cell key={`cell-${index}`} fill={color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  
-                  <div className="mt-4 grid grid-cols-2 gap-4">
-                    <div className="p-3 border rounded-lg bg-muted/30">
-                      <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
-                        <Sparkles className="h-4 w-4 text-blue-500" />
-                        Stärken
-                      </h4>
-                      <ul className="text-sm space-y-1">
-                        {analytics.topStrengths.length > 0 ? (
-                          analytics.topStrengths.map((strength, i) => (
-                            <li key={i} className="text-muted-foreground">• {strength}</li>
-                          ))
-                        ) : (
-                          <li className="text-muted-foreground">Keine besonderen Stärken identifiziert</li>
-                        )}
-                      </ul>
-                    </div>
-                    
-                    <div className="p-3 border rounded-lg bg-muted/30">
-                      <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
-                        <Target className="h-4 w-4 text-amber-500" />
-                        Verbesserungspotenzial
-                      </h4>
-                      <ul className="text-sm space-y-1">
-                        {analytics.improvementAreas.length > 0 ? (
-                          analytics.improvementAreas.map((area, i) => (
-                            <li key={i} className="text-muted-foreground">• {area}</li>
-                          ))
-                        ) : (
-                          <li className="text-muted-foreground">Keine spezifischen Verbesserungsbereiche identifiziert</li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
+                <CardContent className="pt-0">
+                  <div className="text-3xl font-bold">{analytics.totalReflections}</div>
+                  <p className="text-xs text-muted-foreground">im gewählten Zeitraum</p>
                 </CardContent>
               </Card>
               
-              {/* Reflection Level Distribution */}
-              <Card className="shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChartIcon className="h-5 w-5 text-primary" />
-                    Reflexionsebenen
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <LineChartIcon className="h-4 w-4 text-primary" />
+                      <span>Ø Tiefe</span>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Wie tief du im Durchschnitt reflektierst.",
+                              "Der Durchschnittswert der Reflexionstiefe auf einer Skala von 1-10, der angibt, wie gründlich du Themen untersuchst.",
+                              "Dieser Wert repräsentiert die durchschnittliche Tiefe deiner analytischen Betrachtung, die Fähigkeit, über oberflächliche Beobachtungen hinauszugehen und tieferliegende Bedeutungsebenen zu erschließen. Ein höherer Wert deutet auf eine differenziertere Auseinandersetzung mit dem Reflexionsgegenstand hin."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </CardTitle>
-                  <CardDescription>
-                    Verteilung nach Moon&apos;s Reflexionsmodell
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
+                <CardContent className="pt-0">
+                  <div className="text-3xl font-bold">{analytics.avgMetrics.depth}/10</div>
+                  <p className="text-xs text-muted-foreground">
+                    {analytics.avgMetrics.depth < 4 ? 'Ausbaufähig' : analytics.avgMetrics.depth < 7 ? 'Gut' : 'Ausgezeichnet'}
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <PieChartIcon className="h-4 w-4 text-primary" />
+                      <span>Ø Kohärenz</span>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Wie gut deine Gedanken zusammenhängen.",
+                              "Der Durchschnittswert der Kohärenz auf einer Skala von 1-10, der angibt, wie logisch und zusammenhängend deine Reflexionen sind.",
+                              "Die Kohärenz misst die strukturelle und logische Qualität deiner Reflexionen - wie gut Gedanken aufeinander aufbauen, Argumentationslinien entwickelt werden und ein roter Faden erkennbar ist. Hohe Werte deuten auf eine ausgereifte Fähigkeit hin, komplexe Gedankengänge schlüssig zu artikulieren."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-3xl font-bold">{analytics.avgMetrics.coherence}/10</div>
+                  <p className="text-xs text-muted-foreground">
+                    {analytics.avgMetrics.coherence < 4 ? 'Ausbaufähig' : analytics.avgMetrics.coherence < 7 ? 'Gut' : 'Ausgezeichnet'}
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-sm font-medium flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-primary" />
+                      <span>Ø Meta&shy;kognition</span>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Wie gut du über dein eigenes Denken nachdenkst.",
+                              "Der Durchschnittswert der Metakognition auf einer Skala von 1-10, der angibt, wie bewusst du deine eigenen Denkprozesse reflektierst.",
+                              "Metakognition beschreibt deine Fähigkeit, dein eigenes Denken zu beobachten, zu analysieren und zu verstehen. Ein hoher Wert zeigt, dass du regelmäßig kritisch deine eigenen mentalen Modelle, Überzeugungen und Denkprozesse hinterfragst und dir der Faktoren bewusst bist, die deine Perspektiven beeinflussen."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-3xl font-bold">{analytics.avgMetrics.metacognition}/10</div>
+                  <p className="text-xs text-muted-foreground">
+                    {analytics.avgMetrics.metacognition < 4 ? 'Ausbaufähig' : analytics.avgMetrics.metacognition < 7 ? 'Gut' : 'Ausgezeichnet'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Charts Section */}
+            <SubTabs defaultMainTab="metrics" className="mb-8">
+              <MainTabsList className="mb-4">
+                <MainTabTrigger value="metrics" className="flex items-center gap-1">
+                  <LineChartIcon className="h-4 w-4" />
+                  <span>Qualitätsmetriken</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="ml-1 w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm">
+                          {getTooltipContent(
+                            "Zeigt, wie sich deine Reflexionsqualität entwickelt hat.",
+                            "Diese Grafik zeigt die Entwicklung der verschiedenen Qualitätsmetriken deiner Reflexionen über Zeit.",
+                            "Diese Zeitreihenanalyse visualisiert die Entwicklung der vier Hauptdimensionen der Reflexionsqualität in chronologischer Reihenfolge, um Muster, Fortschritte und Bereiche mit Verbesserungspotenzial zu identifizieren."
+                          )}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </MainTabTrigger>
+                <MainTabTrigger value="frequency" className="flex items-center gap-1">
+                  <BarChart4 className="h-4 w-4" />
+                  <span>Häufigkeit</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="ml-1 w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm">
+                          {getTooltipContent(
+                            "Zeigt, wie oft du reflektierst.",
+                            "Diese Grafik zeigt die Anzahl deiner Reflexionen im Zeitverlauf.",
+                            "Diese Analyse zeigt die zeitliche Verteilung deiner Reflexionsaktivitäten und hilft, Muster in deiner Reflexionspraxis zu identifizieren, wie regelmäßige Intervalle oder Phasen erhöhter Reflexionstätigkeit."
+                          )}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </MainTabTrigger>
+                <MainTabTrigger value="categories" className="flex items-center gap-1">
+                  <PieChartIcon className="h-4 w-4" />
+                  <span>Kategorien</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="ml-1 w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm">
+                          {getTooltipContent(
+                            "Zeigt die Verteilung deiner Reflexionsthemen.",
+                            "Diese Grafik zeigt die Verteilung deiner Reflexionen nach Kategorien.",
+                            "Diese thematische Analyse visualisiert die Verteilung deiner Reflexionen auf verschiedene Kategorien und gibt Aufschluss über deine inhaltlichen Schwerpunkte, mögliche blinde Flecken und thematische Präferenzen."
+                          )}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </MainTabTrigger>
+                <MainTabTrigger value="levels" className="flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Reflexionsebenen</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="ml-1 w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm">
+                          {getTooltipContent(
+                            "Zeigt die Tiefe deiner Reflexionen.",
+                            "Diese Grafik zeigt, wie deine Reflexionen auf verschiedene Reflexionsebenen verteilt sind - von beschreibend über analytisch bis kritisch.",
+                            "Diese Analyse klassifiziert deine Reflexionen nach kognitiven Komplexitätsebenen - von beschreibenden, faktenfokussierten Reflexionen über analytische Betrachtungen bis hin zu kritisch-evaluativen Reflexionen mit Integration verschiedener Perspektiven und metakognitiver Tiefe."
+                          )}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </MainTabTrigger>
+              </MainTabsList>
+              
+              <MainTabContent value="metrics">
+                <SubTabsList>
+                  <SubTabTrigger value="overview">Übersicht</SubTabTrigger>
+                  <SubTabTrigger value="depth">Reflexionstiefe</SubTabTrigger>
+                  <SubTabTrigger value="coherence">Kohärenz</SubTabTrigger>
+                  <SubTabTrigger value="metacognition">Metakognition</SubTabTrigger>
+                  <SubTabTrigger value="actionable">Handlungsorientierung</SubTabTrigger>
+                </SubTabsList>
+                
+                <SubTabContent value="overview">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entwicklung der Reflexionsqualität</CardTitle>
+                      <CardDescription>Durchschnittliche Werte über Zeit</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.kpiOverTime}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 10]} />
+                          <RechartsTooltip />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="depth" 
+                            name="Tiefe" 
+                            stroke={COLORS[0]} 
+                            activeDot={{ r: 8 }} 
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="coherence" 
+                            name="Kohärenz" 
+                            stroke={COLORS[1]} 
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="metacognition" 
+                            name="Metakognition" 
+                            stroke={COLORS[2]} 
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="actionable" 
+                            name="Handlung" 
+                            stroke={COLORS[3]} 
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </SubTabContent>
+                
+                <SubTabContent value="depth">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entwicklung der Reflexionstiefe</CardTitle>
+                      <CardDescription>Wie tief du in deinen Reflexionen gehst</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.kpiOverTime}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 10]} />
+                          <RechartsTooltip />
+                          <Line 
+                            type="monotone" 
+                            dataKey="depth" 
+                            name="Reflexionstiefe" 
+                            stroke={COLORS[0]} 
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }} 
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </SubTabContent>
+                
+                <SubTabContent value="coherence">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entwicklung der Kohärenz</CardTitle>
+                      <CardDescription>Wie logisch und zusammenhängend deine Reflexionen sind</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.kpiOverTime}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 10]} />
+                          <RechartsTooltip />
+                          <Line 
+                            type="monotone" 
+                            dataKey="coherence" 
+                            name="Kohärenz" 
+                            stroke={COLORS[1]} 
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }} 
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </SubTabContent>
+                
+                <SubTabContent value="metacognition">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entwicklung der Metakognition</CardTitle>
+                      <CardDescription>Wie bewusst du über dein eigenes Denken reflektierst</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.kpiOverTime}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 10]} />
+                          <RechartsTooltip />
+                          <Line 
+                            type="monotone" 
+                            dataKey="metacognition" 
+                            name="Metakognition" 
+                            stroke={COLORS[2]} 
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }} 
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </SubTabContent>
+                
+                <SubTabContent value="actionable">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entwicklung der Handlungsorientierung</CardTitle>
+                      <CardDescription>Wie effektiv du konkrete nächste Schritte ableitest</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.kpiOverTime}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[0, 10]} />
+                          <RechartsTooltip />
+                          <Line 
+                            type="monotone" 
+                            dataKey="actionable" 
+                            name="Handlungsorientierung" 
+                            stroke={COLORS[3]} 
+                            strokeWidth={2}
+                            activeDot={{ r: 8 }} 
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </SubTabContent>
+              </MainTabContent>
+              
+              <MainTabContent value="frequency">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reflexionshäufigkeit</CardTitle>
+                    <CardDescription>Anzahl der Reflexionen im Zeitverlauf</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.reflectionsOverTime}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis allowDecimals={false} />
+                        <RechartsTooltip />
+                        <Bar dataKey="count" name="Anzahl" fill={COLORS[0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </MainTabContent>
+              
+              <MainTabContent value="categories">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Kategorieverteilung</CardTitle>
+                    <CardDescription>Verteilung deiner Reflexionen nach Kategorien</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RePieChart>
+                        <Pie
+                          data={analytics.categoryDistribution}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {analytics.categoryDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                        <Legend />
+                      </RePieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </MainTabContent>
+              
+              <MainTabContent value="levels">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reflexionsebenen</CardTitle>
+                    <CardDescription>Verteilung deiner Reflexionen nach Reflexionsebenen</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <RePieChart>
                         <Pie
                           data={analytics.reflectionLevelDistribution}
                           cx="50%"
                           cy="50%"
-                          innerRadius={65}
-                          outerRadius={90}
-                          paddingAngle={5}
+                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
                           dataKey="value"
-                          label={({ name, percent }) => 
-                            `${name} (${(percent * 100).toFixed(0)}%)`
-                          }
-                          labelLine={false}
                         >
                           {analytics.reflectionLevelDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={REFLECTION_LEVEL_COLORS[index % REFLECTION_LEVEL_COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip 
-                          formatter={(value) => [`${value} Reflexionen`, ""]}
-                        />
+                        <RechartsTooltip />
+                        <Legend />
                       </RePieChart>
                     </ResponsiveContainer>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <p className="text-center text-sm text-muted-foreground">
-                      Durchschnittliche Bewertung: <span className="font-medium">{analytics.avgMetrics.overall}/10</span>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </MainTabContent>
+            </SubTabs>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Category Distribution */}
-              <Card className="shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChartIcon className="h-5 w-5 text-primary" />
-                    Kategorien
-                  </CardTitle>
-                  <CardDescription>
-                    Verteilung der Reflexionen nach Kategorien
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RePieChart>
-                        <Pie
-                          data={analytics.categoryDistribution.slice(0, 5)}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          dataKey="value"
-                          label={({ name, percent }) => 
-                            `${name} (${(percent * 100).toFixed(0)}%)`
-                          }
-                        >
-                          {analytics.categoryDistribution.slice(0, 5).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => [`${value} Reflexionen`, ""]}
-                        />
-                      </RePieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Reflection Count Trend */}
-              <Card className="shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChartIcon className="h-5 w-5 text-primary" />
-                    Reflexionsaktivität
-                  </CardTitle>
-                  <CardDescription>
-                    Anzahl der Reflexionen im Zeitverlauf
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={analytics.reflectionsOverTime}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis 
-                          dataKey="date"
-                          tick={{ fontSize: 12 }}
-                          interval="preserveEnd"
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Area
-                          type="monotone"
-                          dataKey="count"
-                          name="Reflexionen"
-                          stroke="#3b82f6"
-                          fill="#3b82f680"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="kpis">
-            <Card className="shadow-md mb-8">
-              <CardHeader>
-                <CardTitle>KPI-Entwicklung im Zeitverlauf</CardTitle>
-                <CardDescription>
-                  Verbesserung deiner Reflexionsmetriken über die Zeit
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={analytics.kpiOverTime}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 10]} />
-                      <Tooltip />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="depth"
-                        name="Tiefe"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="coherence"
-                        name="Kohärenz"
-                        stroke="#f59e0b"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="metacognition"
-                        name="Metakognition"
-                        stroke="#8b5cf6"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="actionable"
-                        name="Handlungsorientierung"
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="average"
-                        name="Durchschnitt"
-                        stroke="#475569"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-              <CardFooter className="text-sm text-muted-foreground">
-                <p>Die Visualisierung zeigt die durchschnittlichen KPI-Werte pro Woche basierend auf NLP-Analysen.</p>
-              </CardFooter>
-            </Card>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-md">
+            {/* Analysis Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Vergleich zu Bildungsstandards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Durchschnittlicher KPI-Wert</span>
-                        <span className="font-medium">{analytics.avgMetrics.overall}/10</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full" 
-                          style={{ width: `${analytics.avgMetrics.overall * 10}%` }} 
-                        />
-                      </div>
-                      <div className="flex justify-between text-xs mt-1 text-muted-foreground">
-                        <span>Anfänger</span>
-                        <span>Fortgeschritten</span>
-                        <span>Experte</span>
-                      </div>
-                    </div>
-                    
-                    {/* KPI interpretations */}
-                    <div className="p-3 border rounded-lg bg-muted/30">
-                      <h4 className="text-sm font-medium mb-2">NLP-Analyse Interpretation</h4>
-                      {analytics.avgMetrics.overall < 5 && (
-                        <p className="text-sm text-muted-foreground">
-                          Deine Reflexionen zeigen grundlegende deskriptive Elemente. Versuche, tiefer in die Analyse zu gehen und deine eigenen Denkmuster zu hinterfragen.
-                        </p>
-                      )}
-                      {analytics.avgMetrics.overall >= 5 && analytics.avgMetrics.overall < 7 && (
-                        <p className="text-sm text-muted-foreground">
-                          Deine Reflexionen zeigen eine gute analytische Qualität. Du beginnst, Ursachen und Zusammenhänge zu erkennen und zu verstehen.
-                        </p>
-                      )}
-                      {analytics.avgMetrics.overall >= 7 && (
-                        <p className="text-sm text-muted-foreground">
-                          Deine Reflexionen zeigen ein hohes kritisches Niveau. Du betrachtest Situationen aus verschiedenen Perspektiven und verknüpfst Erkenntnisse mit breiteren Kontexten.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
-                    NLP-basierte Empfehlungen
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/30">
-                      <h4 className="text-sm font-medium mb-2 text-blue-700 dark:text-blue-300">Empfehlungen zur Verbesserung</h4>
-                      <ul className="text-sm space-y-2">
-                        {analytics.avgMetrics.depth < 6 && (
-                          <li className="text-muted-foreground">
-                            <span className="font-medium text-blue-600 dark:text-blue-400">Reflexionstiefe:</span> Versuche, tiefer in deine Erfahrungen einzutauchen und verschiedene Aspekte zu analysieren.
-                          </li>
-                        )}
-                        {analytics.avgMetrics.coherence < 6 && (
-                          <li className="text-muted-foreground">
-                            <span className="font-medium text-amber-600 dark:text-amber-400">Kohärenz:</span> Achte auf eine klare Struktur und logische Verbindungen zwischen deinen Gedanken.
-                          </li>
-                        )}
-                        {analytics.avgMetrics.metacognition < 6 && (
-                          <li className="text-muted-foreground">
-                            <span className="font-medium text-purple-600 dark:text-purple-400">Metakognition:</span> Reflektiere bewusster über deine eigenen Denk- und Lernprozesse.
-                          </li>
-                        )}
-                        {analytics.avgMetrics.actionable < 6 && (
-                          <li className="text-muted-foreground">
-                            <span className="font-medium text-emerald-600 dark:text-emerald-400">Handlungsorientierung:</span> Leite konkrete nächste Schritte und Aktionen aus deinen Erkenntnissen ab.
-                          </li>
-                        )}
-                        {(analytics.avgMetrics.depth >= 6 && analytics.avgMetrics.coherence >= 6 && 
-                          analytics.avgMetrics.metacognition >= 6 && analytics.avgMetrics.actionable >= 6) && (
-                          <li className="text-muted-foreground">
-                            Deine Reflexionen zeigen bereits eine gute Qualität in allen Bereichen. Versuche, dieses Niveau zu halten und weiter zu verfeinern.
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                    
-                    <Button variant="outline" className="w-full" asChild>
-                      <Link href="/resources/reflection-theory">
-                        Mehr über Reflexionstheorie lernen
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="trends">
-            <Card className="shadow-md mb-8">
-              <CardHeader>
-                <CardTitle>Langzeitentwicklung deiner Reflexionsfähigkeiten</CardTitle>
-                <CardDescription>
-                  Analyse deiner Fortschritte über Zeit basierend auf NLP-Metriken
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={analytics.kpiOverTime}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis domain={[0, 10]} />
-                      <Tooltip />
-                      <Legend />
-                      <Area
-                        type="monotone"
-                        dataKey="average"
-                        name="Durchschnitt aller KPIs"
-                        stroke="#475569"
-                        fill="#47556960"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    Aktivitätsverteilung
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={analytics.reflectionsOverTime}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="count" name="Reflexionen" fill="#3b82f6" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle>Fortschrittsanalyse</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Overall progress calculation based on trends */}
-                    {(() => {
-                      // Calculate progress trend
-                      let trend = 0;
-                      if (analytics.kpiOverTime.length >= 2) {
-                        const firstAvg = analytics.kpiOverTime[0].average;
-                        const lastAvg = analytics.kpiOverTime[analytics.kpiOverTime.length - 1].average;
-                        trend = lastAvg - firstAvg;
-                      }
-                      
-                      return (
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Gesamtfortschritt</h4>
-                          <div className="p-3 border rounded-lg bg-muted/30">
-                            {trend > 0.5 && (
-                              <p className="text-sm text-emerald-600 dark:text-emerald-400">
-                                <TrendingUp className="h-4 w-4 inline-block mr-1" />
-                                Positive Entwicklung: Deine Reflexionsqualität hat sich um {trend.toFixed(1)} Punkte verbessert.
-                              </p>
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    Stärken
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Deine größten Stärken beim Reflektieren.",
+                              "Basierend auf der Analyse deiner Reflexionen wurden diese Bereiche als deine Stärken identifiziert.",
+                              "Diese KI-identifizierten Stärken basieren auf einer vergleichenden Analyse deiner Reflexionsmetriken, wobei Bereiche mit überdurchschnittlicher Leistung und konsistenten Qualitätsmustern hervorgehoben werden."
                             )}
-                            {trend < -0.5 && (
-                              <p className="text-sm text-amber-600 dark:text-amber-400">
-                                <TrendingUp className="h-4 w-4 inline-block mr-1 rotate-180" />
-                                Rückläufige Entwicklung: Deine Reflexionsqualität hat um {Math.abs(trend).toFixed(1)} Punkte abgenommen.
-                              </p>
-                            )}
-                            {trend >= -0.5 && trend <= 0.5 && (
-                              <p className="text-sm text-muted-foreground">
-                                <TrendingUp className="h-4 w-4 inline-block mr-1 rotate-90" />
-                                Stabile Entwicklung: Deine Reflexionsqualität ist konstant geblieben.
-                              </p>
-                            )}
-                          </div>
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {analytics.topStrengths.map((strength, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-blue-100 dark:bg-blue-800/30 flex items-center justify-center">
+                          <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">{index + 1}</span>
                         </div>
-                      )
-                    })()}
-                    
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Nächste Schritte</h4>
-                      <div className="p-3 border rounded-lg bg-muted/30">
-                        <ul className="text-sm space-y-1">
-                          <li className="text-muted-foreground">
-                            • Erstelle regelmäßige Reflexionen für konsistentes Feedback
-                          </li>
-                          <li className="text-muted-foreground">
-                            • Fokussiere auf Verbesserung in deinen identifizierten Schwachbereichen
-                          </li>
-                          <li className="text-muted-foreground">
-                            • Nutze die NLP-Analysen für konkrete Verbesserungsvorschläge
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-amber-600" />
+                    Verbesserungspotenzial
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs cursor-help">?</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Bereiche zum Verbessern deiner Reflexionen.",
+                              "Basierend auf der Analyse deiner Reflexionen wurden diese Bereiche mit Verbesserungspotenzial identifiziert.",
+                              "Diese Entwicklungsbereiche wurden durch die algorithmische Analyse deiner Reflexionsmuster identifiziert, wobei relative Schwächen, Inkonsistenzen oder unterdurchschnittliche Aspekte im Vergleich zu deinen anderen Reflexionskompetenzen hervorgehoben werden."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {analytics.improvementAreas.map((area, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-800/30 flex items-center justify-center">
+                          <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">{index + 1}</span>
+                        </div>
+                        <span>{area}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-        </Tabs>
+            
+            <div className="flex justify-center mt-12">
+              <Button asChild>
+                <Link href="/reflections/new" className="flex items-center gap-2">
+                  <span>Neue Reflexion starten</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="py-16 text-center">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+              <BarChart4 className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h2 className="text-lg font-medium mt-4">Keine Reflexionen vorhanden</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mt-2 mb-6">
+              Erstelle deine erste Reflexion, um detaillierte Analysen und Trends zu sehen.
+            </p>
+            <Button asChild>
+              <Link href="/reflections/new">Erste Reflexion erstellen</Link>
+            </Button>
+          </div>
+        )}
       </div>
     </RequireAuth>
   )

@@ -113,7 +113,7 @@ export default function NLPResourcePage() {
                   was ein tieferes Verständnis der Bedeutung ermöglicht.
                 </li>
                 <li>
-                  <strong>Vortrainiert und anpassbar:</strong> BERT wird auf großen Textkorpora vortrainiert und kann dann für spezifische 
+                  <strong>Vortrainiert und anpassbar:</strong> BERT wird auf grossen Textkorpora vortrainiert und kann dann für spezifische 
                   Aufgaben wie Klassifikation oder Frage-Antwort-Systeme feinabgestimmt werden.
                 </li>
               </ul>

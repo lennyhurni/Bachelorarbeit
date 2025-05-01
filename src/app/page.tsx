@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientBrowser } from '@/utils/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Brain, ArrowRight } from "lucide-react"
@@ -14,7 +14,7 @@ export default function HomePage() {
   
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClientBrowser()
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         router.push('/dashboard')

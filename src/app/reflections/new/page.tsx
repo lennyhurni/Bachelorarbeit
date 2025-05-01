@@ -42,7 +42,7 @@ import RequireAuth from "@/components/RequireAuth"
 import { useUserSettings } from "@/hooks/useUserSettings"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 
 // Komplett überarbeitetes RadarChart mit korrekter Visualisierung
@@ -241,7 +241,7 @@ export default function NewAdaptiveReflection() {
   
   // Add router for navigation
   const router = useRouter()
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   const { toast } = useToast()
   
   // Add settings hook
@@ -270,7 +270,7 @@ export default function NewAdaptiveReflection() {
     const reflectionPrompts = [
       "Was haben Sie aus dieser Erfahrung gelernt?",
       "Wie hat diese Erfahrung Ihre Sichtweise verändert?",
-      "Welche Erkenntnisse über sich selbst haben Sie gewonnen?"
+      "Welche Erkenntnisse über sich haben Sie gewonnen?"
     ];
     
     const actionPrompts = [
@@ -775,6 +775,19 @@ export default function NewAdaptiveReflection() {
     )
   }
 
+  // Add helper function for tooltip content based on feedback depth
+  const getTooltipContent = (basic: string, standard: string, detailed: string) => {
+    switch (settings?.feedbackDepth || 'standard') {
+      case 'basic':
+        return basic;
+      case 'detailed':
+        return detailed;
+      case 'standard':
+      default:
+        return standard;
+    }
+  }
+
   return (
     <RequireAuth>
       <form onSubmit={saveReflection} className="overflow-auto h-full">
@@ -793,6 +806,22 @@ export default function NewAdaptiveReflection() {
                 </Link>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-foreground">Neue Reflexion</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground ml-2 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm">
+                        {getTooltipContent(
+                          "Hier kannst du eine neue Reflexion erstellen und automatisches Feedback erhalten.",
+                          "Auf dieser Seite kannst du eine neue Reflexion erstellen und KI-basierte Analysen und Feedback erhalten, um deine Reflexionsfähigkeiten zu verbessern.",
+                          "Diese Seite ermöglicht die Erstellung einer neuen Reflexion mit automatisierter KI-Analyse, die deine metakognitiven Prozesse evaluiert und personalisiertes Feedback zu verschiedenen Qualitätsdimensionen wie Tiefe, Kohärenz, Metakognition und Handlungsorientierung bietet."
+                        )}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
             
@@ -838,6 +867,22 @@ export default function NewAdaptiveReflection() {
                   aria-label="Transparenz-Modus umschalten"
                 />
                 <Label htmlFor="transparency" className="text-sm">Details</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm">
+                        {getTooltipContent(
+                          "Zeigt mehr Details zur KI-Analyse an.",
+                          "Aktiviere diese Option, um detaillierte Informationen zur KI-Analyse und zum Bewertungsprozess anzuzeigen.",
+                          "Diese Option zeigt erweiterte Informationen zum algorithmischen Analyseprozess, einschließlich der verwendeten Kriterien, Gewichtungen und metakognitiven Parameter, die zur Bewertung deiner Reflexion herangezogen werden."
+                        )}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </div>
@@ -847,7 +892,19 @@ export default function NewAdaptiveReflection() {
           {/* Title input and actions */}
           <div className="flex items-start justify-between gap-4 mb-6">
             <div className="flex-1">
-              <Label htmlFor="title" className="text-base font-medium mb-2 block">Titel der Reflexion</Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Label htmlFor="title" className="text-base font-medium block">Titel der Reflexion</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm">Ein prägnanter Titel für deine Reflexion, der das Hauptthema zusammenfasst.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Input 
                 id="title"
                 placeholder="Geben Sie einen aussagekräftigen Titel ein..."
@@ -875,7 +932,7 @@ export default function NewAdaptiveReflection() {
               </Button>
             </div>
           </div>
-          
+
           {/* Show error message if any */}
           {errorMessage && (
             <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
@@ -886,7 +943,26 @@ export default function NewAdaptiveReflection() {
           {/* Additional settings */}
           <div className="mb-6">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="category" className="text-sm font-medium">Kategorie</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="category" className="text-sm font-medium">Kategorie</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm">
+                        {getTooltipContent(
+                          "Wähle eine passende Kategorie für deine Reflexion.",
+                          "Kategorien helfen dir, deine Reflexionen zu organisieren und Muster in verschiedenen Lebensbereichen zu erkennen.",
+                          "Die Kategorisierung deiner Reflexionen ermöglicht eine systematische Analyse deiner Denkmuster über verschiedene Lebensbereiche hinweg und hilft, spezifische Entwicklungstrends in bestimmten Kontexten zu identifizieren."
+                        )}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              
               <Select 
                 value={category} 
                 onValueChange={setCategory}
@@ -897,7 +973,7 @@ export default function NewAdaptiveReflection() {
                 <SelectContent>
                   <div className="flex justify-between items-center px-2 pt-1.5 pb-2 mb-1 border-b">
                     <span className="text-xs text-muted-foreground">Wählen Sie eine Kategorie für Ihre Reflexion</span>
-            </div>
+                  </div>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -920,49 +996,49 @@ export default function NewAdaptiveReflection() {
                     </Tooltip>
                   </TooltipProvider>
                   
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Ausbildung" className="cursor-help">Ausbildung</SelectItem>
-                        </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über Ausbildungsphase, Lehre oder Berufsausbildung.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Studium" className="cursor-help">Studium</SelectItem>
-                            </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über akademische Erfahrungen, Kurse und Lernprozesse.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Persönlich" className="cursor-help">Persönlich</SelectItem>
-                        </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Private Reflexionen über persönliche Erfahrungen und Entwicklungen.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Selbstentwicklung" className="cursor-help">Selbstentwicklung</SelectItem>
-                              </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über persönliches Wachstum, neue Fähigkeiten und Selbstverbesserung.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
                   <TooltipProvider>
                     <Tooltip>
@@ -986,57 +1062,57 @@ export default function NewAdaptiveReflection() {
                     </Tooltip>
                   </TooltipProvider>
                   
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Führung" className="cursor-help">Führung</SelectItem>
-                            </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über Führungserfahrungen, Mentoring oder Leitung von Teams.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Lernen" className="cursor-help">Lernen</SelectItem>
-                                </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über Lernprozesse, neue Erkenntnisse und Wissenserwerb.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Herausforderung" className="cursor-help">Herausforderung</SelectItem>
-                            </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über das Überwinden von Schwierigkeiten und Bewältigen von Problemen.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <SelectItem value="Erfolg" className="cursor-help">Erfolg</SelectItem>
-                                </TooltipTrigger>
+                      </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-xs">Reflexionen über Erfolge, Errungenschaften und positive Ergebnisse.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 Die Kategorie ermöglicht eine bessere Organisation und präzisere KI-Analysen Ihrer Reflexionen.
               </p>
-                          </div>
-                        </div>
-          
+            </div>
+          </div>
+
           {/* Main Content */}
           <div className="py-4">
             <div className="grid gap-6 md:grid-cols-2">
@@ -1047,21 +1123,43 @@ export default function NewAdaptiveReflection() {
                     <div className="flex items-center gap-2">
                       <Brain className="h-5 w-5 text-primary" />
                       <CardTitle>Reflexion schreiben</CardTitle>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-sm">
+                            <p className="text-sm">
+                              {getTooltipContent(
+                                "Schreib hier deine Reflexion auf.",
+                                "Hier kannst du deine Reflexion eingeben. Versuche, tief und kritisch zu reflektieren, um besseres Feedback zu erhalten.",
+                                "Eine qualitativ hochwertige Reflexion umfasst typischerweise mehrere Ebenen: (1) Beschreibung der Erfahrung oder Situation, (2) Analyse von Ursachen und Zusammenhängen, (3) Betrachtung eigener Gedanken, Gefühle und mentaler Modelle, (4) kritische Evaluation verschiedener Perspektiven, (5) Herstellung von Verbindungen zu Theorien oder früheren Erfahrungen und (6) Ableitung konkreter Handlungsschritte oder Erkenntnisse."
+                              )}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <div className="flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-1 rounded-full cursor-help">
                             <Sparkles className="h-3.5 w-3.5" />
                             <span>KI-Analyse</span>
                           </div>
-                                </TooltipTrigger>
-                                <TooltipContent align="end" className="max-w-xs">
-                          <p className="text-xs">Das System analysiert Ihren Text und bietet personalisiertes Feedback sowie hilfreiche Fragen für die Reflexion.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent align="end" className="max-w-xs">
+                          <p className="text-xs">
+                            {getTooltipContent(
+                              "Das System analysiert deinen Text und gibt dir Feedback.",
+                              "Das System analysiert deinen Text und bietet personalisiertes Feedback sowie hilfreiche Fragen für die Reflexion.",
+                              "Die KI-Analyse verwendet fortschrittliche Textverarbeitungsmethoden, um die Qualität deiner Reflexion in mehreren Dimensionen zu evaluieren und bietet personalisierte Empfehlungen zur Weiterentwicklung."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-4">
@@ -1073,8 +1171,8 @@ export default function NewAdaptiveReflection() {
                       value={reflectionText}
                       onChange={(e) => setReflectionText(e.target.value)}
                     />
-                          </div>
-                          
+                  </div>
+
                   {/* Hilfreiche Fragen als separate Karte */}
                   <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/50 mt-4">
                     <CardHeader className="p-3 pb-1">
@@ -1082,8 +1180,24 @@ export default function NewAdaptiveReflection() {
                         <div className="flex items-center gap-1">
                           <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           <CardTitle className="text-sm">Hilfreiche Fragen</CardTitle>
-                                  </div>
-                        <Button 
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-blue-600/70 dark:text-blue-400/70 ml-1 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">
+                                  {getTooltipContent(
+                                    "Diese Fragen helfen dir beim Reflektieren.",
+                                    "Diese dynamisch generierten Fragen passen sich an den Inhalt deiner Reflexion an, um tiefere Einsichten zu fördern.",
+                                    "Diese kontextabhängigen Prompts werden algorithmisch generiert, basierend auf einer Echtzeit-Analyse des Inhalts und der Struktur deiner Reflexion."
+                                  )}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <Button
                           size="sm" 
                           variant="ghost" 
                           onClick={refreshAdaptivePrompts}
@@ -1097,7 +1211,7 @@ export default function NewAdaptiveReflection() {
                           )}
                           {refreshingQuestions ? "Aktualisiere..." : "Aktualisieren"}
                         </Button>
-                              </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="p-3 pt-1">
                       {adaptivePrompts.length > 0 ? (
@@ -1117,21 +1231,56 @@ export default function NewAdaptiveReflection() {
                     </CardContent>
                   </Card>
                   
-                  <div className="mt-4 flex justify-end">
-                    <Button type="submit" disabled={submitting} className="w-full">
+                  <div className="mt-4 flex justify-between items-center">
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      onClick={analyzeWithNLP}
+                      disabled={!reflectionText || reflectionText.length < 50 || analyzingFeedback}
+                      className="gap-2"
+                    >
+                      {analyzingFeedback ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Analysiere...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Feedback erhalten
+                        </>
+                      )}
+                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground mx-2 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Analysiere deine Reflexion, um Feedback zu erhalten.",
+                              "Klicke hier, um eine KI-basierte Analyse deiner Reflexion zu erhalten. Die Analyse bewertet verschiedene Aspekte wie Tiefe, Kohärenz, Metakognition und Handlungsorientierung.",
+                              "Die KI-Analyse identifiziert Stärken, Verbesserungspotenziale und bietet personalisierte Empfehlungen zur Weiterentwicklung deiner Reflexionspraxis."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Button type="submit" disabled={submitting} className="gap-2">
                       {submitting ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           Speichern...
                         </>
                       ) : (
                         <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Reflexion speichern
+                          <Save className="h-4 w-4" />
+                          Speichern
                         </>
-                                )}
+                      )}
                     </Button>
-                              </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -1141,12 +1290,28 @@ export default function NewAdaptiveReflection() {
                   <div className="flex items-center gap-2">
                     <BrainCircuit className="h-5 w-5 text-primary" />
                     <CardTitle>KI-Feedback</CardTitle>
-                        </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getTooltipContent(
+                              "Hier siehst du das KI-Feedback zu deiner Reflexion.",
+                              "Hier erhältst du detailliertes Feedback zu verschiedenen Aspekten deiner Reflexion, basierend auf KI-Analyse.",
+                              "Dieser Bereich zeigt die Ergebnisse der KI-Textanalyse deiner Reflexion, einschließlich quantitativer Bewertungen verschiedener Qualitätsdimensionen sowie qualitativer Erkenntnisse zu Stärken und Verbesserungspotenzialen."
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-4">
                   {renderFeedbackUI()}
-                  </CardContent>
-                </Card>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { createClientBrowser } from "./supabase/client"
+import { createClient } from "./supabase/client"
 
 export interface UserSettings {
   feedbackDepth: string
@@ -28,7 +28,7 @@ export async function updateUserSetting<K extends keyof UserSettings>(
   key: K,
   value: UserSettings[K]
 ): Promise<boolean> {
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   
   try {
     // First get current settings
@@ -102,7 +102,7 @@ export async function updateUserSettings(
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<boolean> {
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   
   try {
     // First get current settings
@@ -172,7 +172,7 @@ export async function updateUserSettings(
  * @returns Promise resolving to user settings
  */
 export async function getUserSettings(userId: string): Promise<UserSettings> {
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   
   try {
     // First check if the profile exists

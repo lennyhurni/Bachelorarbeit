@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, ReactNode } from "react"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
@@ -9,7 +9,7 @@ export default function RequireAuth({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const router = useRouter()
-  const supabase = createClientBrowser()
+  const supabase = createClient()
 
   useEffect(() => {
     async function checkAuth() {

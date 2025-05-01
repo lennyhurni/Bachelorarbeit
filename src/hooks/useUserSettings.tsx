@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { UserSettings, defaultSettings, updateUserSetting, updateUserSettings } from "@/utils/user-settings"
 import { useToast } from "@/components/ui/use-toast"
 import { ensureUserProfile } from "@/utils/profile-manager"
@@ -9,7 +9,7 @@ export function useUserSettings() {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings)
   const [loading, setLoading] = useState(true)
   const [retryCount, setRetryCount] = useState(0)
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   const { toast } = useToast()
   const { user, session, loading: sessionLoading } = useSession()
 
@@ -98,7 +98,7 @@ export function useUserSettings() {
     }
     
     loadSettings()
-  }, [supabase, session, sessionLoading, retryCount, user])
+  }, [supabase, session, sessionLoading, retryCount])
 
   // Function to update a single setting
   const updateSetting = async <K extends keyof UserSettings>(

@@ -5,7 +5,7 @@ import { Session } from '@supabase/supabase-js'
 import { usePathname, useRouter } from 'next/navigation'
 import { Navigation } from './navigation'
 import { Sidebar } from './sidebar'
-import { createClientBrowser } from '@/utils/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 
 // Public paths that don't require authenticated UI
 const publicPaths = ['/', '/login', '/register', '/auth/callback', '/auth/confirmed', '/auth/confirm', '/register/confirmation']
@@ -21,7 +21,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createClientBrowser()
+    const supabase = createClient()
     
     const checkSession = async () => {
       try {

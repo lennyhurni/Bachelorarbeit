@@ -103,17 +103,27 @@ export async function POST(request: Request): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       })
     }
+
+    // Get user settings to determine feedback depth level
+    const { data: userSettings } = await supabase
+      .from("user_settings")
+      .select("feedback_depth_level")
+      .eq("user_id", user.id)
+      .single()
+    
+    const feedbackDepth = userSettings?.feedback_depth_level || "standard"
     
     apiLogger.info("Starting analysis", { 
       reflectionId, 
       contentLength: content.length,
       title,
       category,
-      preserveExistingKpis: !!preserveKpis
+      preserveExistingKpis: !!preserveKpis,
+      feedbackDepth
     })
     
-    // Analyze the reflection using both NLP API and GPT
-    const analysis = await analyzeReflection(content, title, category)
+    // Analyze the reflection using both NLP API and GPT with the user's feedback depth preference
+    const analysis = await analyzeReflection(content, title, category, feedbackDepth)
     
     apiLogger.info("Analysis completed successfully", {
       reflectionId,
@@ -232,7 +242,7 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 // Helper function to analyze a reflection using both NLP API and GPT
-async function analyzeReflection(content: string, title: string, category?: string) {
+async function analyzeReflection(content: string, title: string, category?: string, feedbackDepth: string = "standard") {
   try {
     // Get NLP metrics using Google's Natural Language API if available
     let nlpMetrics = {
@@ -255,9 +265,10 @@ async function analyzeReflection(content: string, title: string, category?: stri
     openaiLogger.info("Starting LLM analysis", { 
       contentLength: content.length,
       title,
-      category 
+      category,
+      feedbackDepth
     })
-    const llmAnalysis = await getLLMAnalysis(content, title, category);
+    const llmAnalysis = await getLLMAnalysis(content, title, category, feedbackDepth);
     openaiLogger.info("LLM analysis completed", { 
       reflectionLevel: llmAnalysis.reflection_level, 
       insightsCount: llmAnalysis.insights.length 
@@ -681,7 +692,7 @@ async function getNLPMetrics(content: string) {
       
       // Strategic planning language - Standard German
       "strategie", "ansatz", "methode", "vorgehen", "prozess",
-      "schritte", "maßnahmen", "aktionsplan", "herangehensweise",
+      "schritte", "massnahmen", "aktionsplan", "herangehensweise",
       
       // Swiss German strategic terms
       ...(detectedLanguage === "swissGerman" ? [
@@ -883,29 +894,41 @@ function calculateStandardDeviation(values: number[]): number {
 }
 
 // Get qualitative insights using OpenAI's GPT with improved scientific prompt
-async function getLLMAnalysis(content: string, title: string, category?: string) {
+async function getLLMAnalysis(content: string, title: string, category?: string, feedbackDepth: string = "standard") {
+  // Determine feedback detail level
+  let detailLevel = "mittlerer";
+  if (feedbackDepth === "basic") detailLevel = "grundlegender";
+  if (feedbackDepth === "detailed") detailLevel = "detaillierter";
+
   // Create a system prompt for qualitative analysis with scientific foundations
   const systemPrompt = `Du bist ein Experte für reflektives Denken und Textanalyse mit fundiertem Wissen über theoretische Modelle der Reflexion.
 
 AUFGABE:
-Analysiere den folgenden Reflexionstext nach wissenschaftlichen Kriterien und theoretischen Modellen.
+Analysiere den folgenden Reflexionstext nach wissenschaftlichen Kriterien und theoretischen Modellen mit ${detailLevel} Detailtiefe.
 
 THEORETISCHER RAHMEN:
 Verwende Jennifer Moons hierarchisches Reflexionsmodell mit den Ebenen:
 1. BESCHREIBEND: Einfache Wiedergabe von Ereignissen ohne tiefere Analyse (naive Berichterstattung)
 2. ANALYTISCH: Identifikation von Mustern, Ursachen und Wirkungen (systematische Untersuchung)
-3. KRITISCH: Tiefergehende Betrachtung unter Berücksichtigung verschiedener Perspektiven, ethischer Implikationen und größerer Kontexte (transformatives Reflektieren)
+3. KRITISCH: Tiefergehende Betrachtung unter Berücksichtigung verschiedener Perspektiven, ethischer Implikationen und grösserer Kontexte (transformatives Reflektieren)
 
 BEWERTUNGSKRITERIEN (Hatton & Smith, 1995):
 - Tiefe: Grad der Detailliertheit und inhaltlichen Differenzierung
 - Kohärenz: Logischer Zusammenhang und Struktur der Gedanken
 - Metakognition: Bewusstsein über eigene Denk- und Lernprozesse
-- Handlungsorientierung: Ableitung konkreter Maßnahmen und Verhaltensänderungen
+- Handlungsorientierung: Ableitung konkreter Massnahmen und Verhaltensänderungen
+
+DETAILTIEFE (basierend auf Nutzereinstellung "${feedbackDepth}"):
+${feedbackDepth === "basic" ? 
+  "- Prägnant: Kurze, direkte Rückmeldung ohne komplexe theoretische Bezüge\n- Einfach: Fokus auf die wichtigsten 1-2 Verbesserungspunkte\n- Konstruktiv: Positiver, ermutigender Kommunikationsstil" : 
+  feedbackDepth === "detailed" ? 
+  "- Tiefgreifend: Ausführliche, differenzierte Analyse mit theoretischen Bezügen\n- Umfassend: Detaillierte Berücksichtigung aller Bewertungskriterien\n- Vielschichtig: Mehrperspektivische Betrachtung der Reflexionsinhalte" :
+  "- Ausgewogen: Balance zwischen Tiefe und Prägnanz\n- Zielgerichtet: Fokus auf die wichtigsten 2-3 Verbesserungspunkte\n- Konstruktiv: Positive Aspekte hervorheben und Verbesserungspotential aufzeigen"}
 
 ANALYSE-AUSGABE:
 1. reflection_level: Eine der drei Kategorien (Beschreibend, Analytisch, Kritisch) basierend auf der dominierenden Reflexionsebene
-2. feedback: Präzises, konstruktives Feedback zur Verbesserung der Reflexionsqualität nach den vier Bewertungskriterien
-3. insights: 3-5 zentrale Erkenntnisse aus der Reflexion, die den Kern der Reflexionsarbeit erfassen
+2. feedback: ${feedbackDepth === "basic" ? "Kurzes, prägnantes" : feedbackDepth === "detailed" ? "Ausführliches, tiefgreifendes" : "Ausgewogenes"} konstruktives Feedback zur Verbesserung der Reflexionsqualität nach den vier Bewertungskriterien
+3. insights: ${feedbackDepth === "basic" ? "2-3" : feedbackDepth === "detailed" ? "4-6" : "3-5"} zentrale Erkenntnisse aus der Reflexion, die den Kern der Reflexionsarbeit erfassen
 
 Antworte mit einem validen JSON-Objekt mit den Feldern: reflection_level, feedback, insights (Array).`
 

@@ -3,13 +3,13 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientBrowser } from '@/utils/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 
 // Wrapper-Komponente für Suspense
 function LoginFormContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const supabase = createClientBrowser()
+  const supabase = createClient()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

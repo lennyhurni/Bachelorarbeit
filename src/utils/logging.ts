@@ -1,4 +1,4 @@
-import { createClientBrowser } from './supabase/client'
+import { createClient } from './supabase/client'
 
 /**
  * Log levels to categorize log messages
@@ -142,7 +142,7 @@ export class Logger {
    */
   private async logToDatabase(logEntry: LogEntry): Promise<void> {
     try {
-      const supabase = createClientBrowser()
+      const supabase = createClient()
       
       await supabase.from('system_logs').insert({
         level: logEntry.level,

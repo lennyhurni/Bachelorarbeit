@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import RequireAuth from "@/components/RequireAuth"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UserSettings as UserSettingsType } from "@/utils/user-settings"
 import { useUserSettings } from "@/hooks/useUserSettings"

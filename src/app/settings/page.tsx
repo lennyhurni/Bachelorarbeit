@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Link from "next/link"
 import { useEffect, useState, useCallback } from "react"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import {
   Settings as SettingsIcon,
   Bell,
@@ -155,7 +155,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   
   const defaultSettings: UserSettings = {
     theme: "system",
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                   >
                     <SettingItem
                       label="Systeminformationen anzeigen"
-                      description="Zeigt technische Informationen in der Fußzeile an"
+                      description="Zeigt technische Informationen in der Fusszeile an"
                       tooltip="Diese Information kann bei der Fehlersuche hilfreich sein"
                     >
                       <Switch
@@ -537,7 +537,7 @@ export default function SettingsPage() {
                   >
                     <SettingItem 
                       label="Benachrichtigungen aktivieren" 
-                      description="Erhalten Sie Erinnerungen zur regelmäßigen Reflexion"
+                      description="Erhalten Sie Erinnerungen zur regelmässigen Reflexion"
                     >
                       <Switch
                         checked={settings.notifications}

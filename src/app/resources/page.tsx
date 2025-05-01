@@ -58,7 +58,7 @@ export default function ResourcesPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Lerne über die Grundlagen und fortgeschrittenen Techniken des NLP, einschließlich 
+              Lerne über die Grundlagen und fortgeschrittenen Techniken des NLP, einschliesslich 
               BERT, Tokenisierung, Vektoreinbettungen und semantischer Analyse.
             </p>
             <div className="flex flex-wrap gap-2">

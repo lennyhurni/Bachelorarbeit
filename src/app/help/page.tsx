@@ -238,12 +238,12 @@ export default function HelpPage() {
                         <div>
                           <h3 className="text-lg font-medium">3. Routine entwickeln</h3>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Legen Sie fest, wann Sie regelmäßig reflektieren möchten.
+                            Legen Sie fest, wann Sie regelmässig reflektieren möchten.
                             Reflektieren Sie über verschiedene Aspekte Ihres Lernens.
                           </p>
                           <div className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
                             <Info className="h-3 w-3" />
-                            <span>Regelmäßige Reflexion verbessert die Lerneffekte</span>
+                            <span>Regelmässige Reflexion verbessert die Lerneffekte</span>
                           </div>
                         </div>
                       </div>

@@ -212,7 +212,7 @@ async function getLiveAnalysis(content: string, title?: string, category?: strin
       "anwenden", "verbessern", "ändern", "in zukunft", "künftig", "ab sofort",
       "als nächstes", "mein ziel ist", "vornehmen", "implementieren", "anpassen",
       "nutzen", "einsetzen", "durchführen", "praktisch anwenden", "konkret",
-      "aktionsplan", "strategie", "vorgehen", "schritte", "maßnahmen", "lösung"
+      "aktionsplan", "strategie", "vorgehen", "schritte", "massnahmen", "lösung"
     ];
     
     // Stärkere Muster für Handlungsorientierung
@@ -221,7 +221,7 @@ async function getLiveAnalysis(content: string, title?: string, category?: strin
       /mein(e)? (nächste(r|n|s)?|konkrete(r|n|s)?) schritt(e)?/i,
       /ich (plane|habe vor|nehme mir vor)/i,
       /ziel ist es/i,
-      /konkrete maßnahmen/i,
+      /konkrete massnahmen/i,
       /aktionsplan/i
     ];
     

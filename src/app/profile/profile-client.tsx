@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +39,7 @@ export default function ProfileClient() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formValues, setFormValues] = useState<Partial<UserProfile>>({})
   const { toast } = useToast()
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   const router = useRouter()
   
   // Use theme hook only for avatar display purposes
@@ -192,7 +192,7 @@ export default function ProfileClient() {
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         showError("avatar", {
-          title: "Datei zu groß",
+          title: "Datei zu gross",
           description: "Bitte wähle ein Bild kleiner als 2MB."
         })
         return
@@ -474,7 +474,7 @@ export default function ProfileClient() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Passwort ändern</Label>
-                  <p className="text-sm text-muted-foreground">Aktualisieren Sie Ihr Passwort regelmäßig für mehr Sicherheit</p>
+                  <p className="text-sm text-muted-foreground">Aktualisieren Sie Ihr Passwort regelmässig für mehr Sicherheit</p>
                 </div>
                 <Button variant="outline" onClick={() => alert('Noch nicht implementiert')}>
                   Passwort ändern

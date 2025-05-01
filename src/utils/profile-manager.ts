@@ -1,4 +1,4 @@
-import { createClientBrowser } from "./supabase/client"
+import { createClient } from "./supabase/client"
 import { UserSettings, defaultSettings } from "./user-settings"
 
 // Flag, um zu verfolgen, ob gerade eine Profilerstellung läuft
@@ -20,7 +20,7 @@ export async function ensureUserProfile(userId: string, userEmail: string | unde
     return null
   }
 
-  const supabase = createClientBrowser()
+  const supabase = createClient()
 
   try {
     // Zuerst prüfen, ob das Profil bereits existiert
@@ -115,7 +115,7 @@ export async function ensureUserProfile(userId: string, userEmail: string | unde
 export async function checkUserProfileExists(userId: string) {
   if (!userId) return false
   
-  const supabase = createClientBrowser()
+  const supabase = createClient()
   
   try {
     const { data, error } = await supabase

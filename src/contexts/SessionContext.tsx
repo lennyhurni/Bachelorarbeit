@@ -1,9 +1,9 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientBrowser } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/client"
 import { ensureUserProfile } from "@/utils/profile-manager"
-import { Session, User } from "@supabase/supabase-js"
+import { Session, User, AuthChangeEvent } from "@supabase/supabase-js"
 
 // Typdefinitionen für den Kontext
 interface SessionContextType {
@@ -25,7 +25,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClientBrowser()
+  const supabase = createClient()
 
   // Funktion zum Aktualisieren der Session
   const refreshSession = async () => {
@@ -64,19 +64,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     
     // Auf Auth-Änderungen hören
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession)
-        
-        if (newSession?.user) {
-          ensureUserProfile(
-            newSession.user.id,
-            newSession.user.email,
-            newSession.user.user_metadata?.full_name
-          ).then(profile => {
+      async (_event: AuthChangeEvent, newSession: Session | null) => {
+        // Actualizar la sesión independientemente durante la carga inicial
+        if (loading || newSession?.user?.id !== session?.user?.id || (!!newSession !== !!session)) {
+          setSession(newSession)
+          
+          if (newSession?.user) {
+            const profile = await ensureUserProfile(
+              newSession.user.id,
+              newSession.user.email,
+              newSession.user.user_metadata?.full_name
+            )
             setUser(profile)
-          })
-        } else {
-          setUser(null)
+          } else {
+            setUser(null)
+          }
         }
       }
     )
