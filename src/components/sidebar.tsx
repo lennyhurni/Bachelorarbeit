@@ -78,7 +78,7 @@ export function Sidebar({ version }: SidebarProps) {
               <BookOpen className="h-6 w-6 text-primary" />
             )}
             <span className="text-lg font-semibold">
-              {isAdaptive ? "Prototyp 2" : "Prototyp 1"}
+              {isAdaptive ? "Prototyp B" : "Prototyp A"}
             </span>
           </div>
           <Button
