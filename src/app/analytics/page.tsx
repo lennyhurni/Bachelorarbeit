@@ -43,6 +43,7 @@ interface KpiOverTime {
   metacognition: number
   actionable: number
   average: number
+  _originalDate?: string
 }
 
 interface ReflectionAnalytics {
@@ -79,9 +80,14 @@ export default function AnalyticsPage() {
   const router = useRouter()
   const { settings } = useUserSettings()
   
-  // Colors for charts
-  const COLORS = ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981']
-  const PIE_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
+  // Colors for charts - Update with consistent branding colors
+  const COLORS = {
+    depth: '#3b82f6',      // Blue - Reflexionstiefe
+    coherence: '#10b981',  // Green - Kohärenz
+    metacognition: '#8b5cf6', // Purple - Metakognition
+    actionable: '#f59e0b'  // Amber - Handlungsorientierung
+  }
+  const PIE_COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899']
   const REFLECTION_LEVEL_COLORS = ['#60a5fa', '#fbbf24', '#34d399']
   
   useEffect(() => {
@@ -148,6 +154,20 @@ export default function AnalyticsPage() {
     // Calculate KPIs over time
     const kpiOverTime = calculateKpiOverTime(filteredReflections)
     
+    // Make sure we have at least one data point if there are reflections
+    if (filteredReflections.length > 0 && kpiOverTime.length === 0) {
+      // Create a single data point with averages if no time-based data is available
+      const avgMetrics = calculateAverageMetrics(filteredReflections);
+      kpiOverTime.push({
+        date: formatDate(new Date().toISOString().split('T')[0]),
+        depth: avgMetrics.depth,
+        coherence: avgMetrics.coherence,
+        metacognition: avgMetrics.metacognition,
+        actionable: avgMetrics.actionable,
+        average: avgMetrics.overall
+      });
+    }
+    
     // Category distribution
     const categoryDistribution = calculateCategoryDistribution(filteredReflections)
     
@@ -191,50 +211,62 @@ export default function AnalyticsPage() {
   function calculateKpiOverTime(reflections: Reflection[]): KpiOverTime[] {
     if (reflections.length === 0) return []
     
-    // Group reflections by week
-    const weekGroups: Record<string, Reflection[]> = {}
+    // Instead of grouping by day to show more detailed data
+    const dateGroups: Record<string, Reflection[]> = {}
     
     reflections.forEach(reflection => {
       const date = new Date(reflection.created_at)
-      // Get start of week (Sunday)
-      const startOfWeek = new Date(date)
-      startOfWeek.setDate(date.getDate() - date.getDay())
-      const weekKey = startOfWeek.toISOString().split('T')[0]
+      const dateKey = date.toISOString().split('T')[0] // Use full ISO date (YYYY-MM-DD)
       
-      if (!weekGroups[weekKey]) {
-        weekGroups[weekKey] = []
+      if (!dateGroups[dateKey]) {
+        dateGroups[dateKey] = []
       }
       
-      weekGroups[weekKey].push(reflection)
+      dateGroups[dateKey].push(reflection)
     })
     
-    // Calculate average KPIs for each week
-    return Object.entries(weekGroups).map(([weekStart, weekReflections]) => {
-      let totalDepth = 0, totalCoherence = 0, totalMetacognition = 0, totalActionable = 0
-      
-      weekReflections.forEach(r => {
-        totalDepth += r.kpi_depth || 0
-        totalCoherence += r.kpi_coherence || 0
-        totalMetacognition += r.kpi_metacognition || 0
-        totalActionable += r.kpi_actionable || 0
+    // Calculate average KPIs for each day
+    const result = Object.entries(dateGroups)
+      .map(([dateKey, reflectionsForDate]) => {
+        let totalDepth = 0, totalCoherence = 0, totalMetacognition = 0, totalActionable = 0
+        
+        reflectionsForDate.forEach(r => {
+          totalDepth += r.kpi_depth || 0
+          totalCoherence += r.kpi_coherence || 0
+          totalMetacognition += r.kpi_metacognition || 0
+          totalActionable += r.kpi_actionable || 0
+        })
+        
+        const count = reflectionsForDate.length
+        const depth = count > 0 ? Number((totalDepth / count).toFixed(1)) : 0
+        const coherence = count > 0 ? Number((totalCoherence / count).toFixed(1)) : 0
+        const metacognition = count > 0 ? Number((totalMetacognition / count).toFixed(1)) : 0
+        const actionable = count > 0 ? Number((totalActionable / count).toFixed(1)) : 0
+        const average = count > 0 ? Number(((depth + coherence + metacognition + actionable) / 4).toFixed(1)) : 0
+        
+        return {
+          date: formatDate(dateKey),
+          depth,
+          coherence,
+          metacognition,
+          actionable,
+          average,
+          // Store original date for proper sorting
+          _originalDate: dateKey
+        }
       })
+      .sort((a, b) => {
+        // Sort by the original ISO date string for accurate chronological order
+        return a._originalDate.localeCompare(b._originalDate)
+      })
+      .map(item => {
+        // Remove the _originalDate property before returning
+        const { _originalDate, ...rest } = item;
+        return rest as KpiOverTime;
+      });
       
-      const count = weekReflections.length
-      const depth = count > 0 ? Number((totalDepth / count).toFixed(1)) : 0
-      const coherence = count > 0 ? Number((totalCoherence / count).toFixed(1)) : 0
-      const metacognition = count > 0 ? Number((totalMetacognition / count).toFixed(1)) : 0
-      const actionable = count > 0 ? Number((totalActionable / count).toFixed(1)) : 0
-      const average = count > 0 ? Number(((depth + coherence + metacognition + actionable) / 4).toFixed(1)) : 0
-      
-      return {
-        date: formatDate(weekStart),
-        depth,
-        coherence,
-        metacognition,
-        actionable,
-        average
-      }
-    })
+    console.log("KPI data points:", result.length, result);
+    return result;
   }
   
   function calculateCategoryDistribution(reflections: Reflection[]) {
@@ -345,9 +377,13 @@ export default function AnalyticsPage() {
     return { topStrengths, improvementAreas }
   }
   
-  function formatDate(dateString: string) {
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' }
-    return new Date(dateString).toLocaleDateString('de-DE', options)
+  function formatDate(dateString: string): string {
+    const dateFormatOptions: Intl.DateTimeFormatOptions = { 
+      day: '2-digit', 
+      month: '2-digit',
+      year: 'numeric'
+    }
+    return new Date(dateString).toLocaleDateString('de-DE', dateFormatOptions)
   }
   
   // Helper function for tooltip content based on feedback depth
@@ -539,7 +575,7 @@ export default function AnalyticsPage() {
               <CardHeader className="py-4">
                 <CardTitle className="text-sm font-medium flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <LineChartIcon className="h-4 w-4 text-primary" />
+                    <LineChartIcon className="h-4 w-4 text-blue-600" />
                     <span>Ø Tiefe</span>
                   </div>
                   <TooltipProvider>
@@ -572,7 +608,7 @@ export default function AnalyticsPage() {
               <CardHeader className="py-4">
                 <CardTitle className="text-sm font-medium flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <PieChartIcon className="h-4 w-4 text-primary" />
+                    <PieChartIcon className="h-4 w-4 text-green-600" />
                     <span>Ø Kohärenz</span>
                   </div>
                   <TooltipProvider>
@@ -605,7 +641,7 @@ export default function AnalyticsPage() {
               <CardHeader className="py-4">
                 <CardTitle className="text-sm font-medium flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-primary" />
+                    <Brain className="h-4 w-4 text-purple-600" />
                     <span>Ø Meta&shy;kognition</span>
                   </div>
                   <TooltipProvider>
@@ -786,34 +822,52 @@ export default function AnalyticsPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
+                          <XAxis 
+                            dataKey="date"
+                            interval="preserveStartEnd"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
                           <YAxis domain={[0, 10]} />
-                          <RechartsTooltip />
+                          <RechartsTooltip 
+                            formatter={(value, name) => [`${value}`, name]} 
+                            labelFormatter={(label) => `Datum: ${label}`}
+                          />
                           <Legend />
                           <Line
                             type="monotone"
                             dataKey="depth"
                             name="Tiefe"
-                            stroke={COLORS[0]} 
-                            activeDot={{ r: 8 }} 
+                            stroke={COLORS.depth} 
+                            activeDot={{ r: 8 }}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                           <Line
                             type="monotone"
                             dataKey="coherence"
                             name="Kohärenz"
-                            stroke={COLORS[1]} 
+                            stroke={COLORS.coherence}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                           <Line
                             type="monotone"
                             dataKey="metacognition"
                             name="Metakognition"
-                            stroke={COLORS[2]} 
+                            stroke={COLORS.metacognition}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                           <Line
                             type="monotone"
                             dataKey="actionable"
                             name="Handlung" 
-                            stroke={COLORS[3]} 
+                            stroke={COLORS.actionable}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -825,16 +879,28 @@ export default function AnalyticsPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
+                          <XAxis 
+                            dataKey="date"
+                            interval="preserveStartEnd"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
                           <YAxis domain={[0, 10]} />
-                          <RechartsTooltip />
+                          <RechartsTooltip 
+                            formatter={(value) => [`${value}`, 'Reflexionstiefe']}
+                            labelFormatter={(label) => `Datum: ${label}`}
+                          />
                           <Line
                             type="monotone"
                             dataKey="depth" 
                             name="Reflexionstiefe" 
-                            stroke={COLORS[0]} 
+                            stroke={COLORS.depth} 
                             strokeWidth={2}
-                            activeDot={{ r: 8 }} 
+                            activeDot={{ r: 8 }}
+                            isAnimationActive={true} 
+                            dot={{ r: 4 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -846,16 +912,28 @@ export default function AnalyticsPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
+                          <XAxis 
+                            dataKey="date"
+                            interval="preserveStartEnd"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
                           <YAxis domain={[0, 10]} />
-                          <RechartsTooltip />
+                          <RechartsTooltip 
+                            formatter={(value) => [`${value}`, 'Kohärenz']}
+                            labelFormatter={(label) => `Datum: ${label}`}
+                          />
                           <Line 
                             type="monotone" 
                             dataKey="coherence" 
                             name="Kohärenz" 
-                            stroke={COLORS[1]} 
+                            stroke={COLORS.coherence} 
                             strokeWidth={2}
-                            activeDot={{ r: 8 }} 
+                            activeDot={{ r: 8 }}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -867,16 +945,28 @@ export default function AnalyticsPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
+                          <XAxis 
+                            dataKey="date"
+                            interval="preserveStartEnd"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
                           <YAxis domain={[0, 10]} />
-                          <RechartsTooltip />
+                          <RechartsTooltip 
+                            formatter={(value) => [`${value}`, 'Metakognition']}
+                            labelFormatter={(label) => `Datum: ${label}`}
+                          />
                           <Line 
                             type="monotone" 
                             dataKey="metacognition" 
                             name="Metakognition" 
-                            stroke={COLORS[2]} 
+                            stroke={COLORS.metacognition} 
                             strokeWidth={2}
-                            activeDot={{ r: 8 }} 
+                            activeDot={{ r: 8 }}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -888,16 +978,28 @@ export default function AnalyticsPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.kpiOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
+                          <XAxis 
+                            dataKey="date"
+                            interval="preserveStartEnd"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
                           <YAxis domain={[0, 10]} />
-                          <RechartsTooltip />
+                          <RechartsTooltip 
+                            formatter={(value) => [`${value}`, 'Handlungsorientierung']}
+                            labelFormatter={(label) => `Datum: ${label}`}
+                          />
                           <Line 
                             type="monotone"
                             dataKey="actionable" 
                             name="Handlungsorientierung" 
-                            stroke={COLORS[3]} 
+                            stroke={COLORS.actionable} 
                             strokeWidth={2}
-                            activeDot={{ r: 8 }} 
+                            activeDot={{ r: 8 }}
+                            isAnimationActive={true}
+                            dot={{ r: 4 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -913,7 +1015,7 @@ export default function AnalyticsPage() {
                         <XAxis dataKey="date" />
                         <YAxis allowDecimals={false} />
                         <RechartsTooltip />
-                        <Bar dataKey="count" name="Anzahl" fill={COLORS[0]} />
+                        <Bar dataKey="count" name="Anzahl" fill={COLORS.depth} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
