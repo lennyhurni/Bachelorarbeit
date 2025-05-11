@@ -48,7 +48,7 @@ export function Navigation() {
                 >
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    <span>Prototyp 1</span>
+                    <span>Prototyp A</span>
                   </div>
                 </NavigationMenuLink>
               </Link>
@@ -63,7 +63,7 @@ export function Navigation() {
                 >
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4" />
-                    <span>Prototyp 2</span>
+                    <span>Prototyp B</span>
                   </div>
                 </NavigationMenuLink>
               </Link>
